@@ -4,15 +4,14 @@ const nextConfig = async () => {
     if (process.env.NODE_ENV === 'development') {
         try {
             // Use dynamic import and check for environment to avoid build-time crashes
-            const { getPlatformProxy } = await import('wrangler');
-            const proxy = await getPlatformProxy({
-                persist: true // Force Next.js dev server to use the actual .wrangler state files
-            });
-            const { env } = proxy;
+            const { setupDevPlatform } = await import('@cloudflare/next-on-pages/next-dev');
+            await setupDevPlatform({ persist: true });
 
-            if (env.DB) {
-                globalThis.DB = env.DB;
-                console.log('✅ [NextConfig] D1 Database connected (local)');
+            // setupDevPlatform automatically assigns env bindings to process.env
+            // we will map DB back to globalThis so db/index.ts can find it
+            if (process.env.DB) {
+                globalThis.DB = process.env.DB;
+                console.log('✅ [NextConfig] D1 Database connected via setupDevPlatform (local)');
             }
         } catch (e) {
             console.warn('⚠️ [NextConfig] Cloudflare D1 proxy could not be initialized. Data might be mock/static.');
