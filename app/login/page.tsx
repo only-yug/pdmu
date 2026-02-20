@@ -1,12 +1,13 @@
 'use client';
 
 import Link from "next/link";
-import { useFormState, useFormStatus } from "react-dom";
-import { authenticate, handleGoogleSignIn } from "@/lib/actions";
+import { useState } from "react";
+import { handleGoogleSignIn } from "@/lib/actions";
 import Image from "next/image";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
+function SubmitButton({ pending }: { pending: boolean }) {
   return (
     <button
       type="submit"
@@ -19,7 +20,38 @@ function SubmitButton() {
 }
 
 export default function LoginPage() {
-  const [errorMessage, dispatch] = useFormState(authenticate, undefined);
+  const router = useRouter();
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isPending, setIsPending] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsPending(true);
+    setErrorMessage("");
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (result?.error) {
+        setErrorMessage("Invalid credentials.");
+      } else {
+        router.push("/leading");
+        router.refresh();
+      }
+    } catch (err) {
+      setErrorMessage("Something went wrong.");
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex items-center justify-center p-4">
@@ -64,7 +96,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <form action={dispatch} className="space-y-4 text-left">
+        <form onSubmit={handleSubmit} className="space-y-4 text-left">
           <div>
             <label className="block text-[10px] font-black uppercase text-gray-400 tracking-[0.1em] mb-1.5 ml-1">Email</label>
             <div className="relative group">
@@ -103,7 +135,7 @@ export default function LoginPage() {
 
           {errorMessage && <p className="text-red-500 text-xs font-bold text-center">{errorMessage}</p>}
 
-          <SubmitButton />
+          <SubmitButton pending={isPending} />
         </form>
 
         <div className="mt-8 pt-6 border-t border-gray-50 dark:border-gray-800 flex flex-col md:flex-row justify-between items-center gap-2 text-[11px]">
