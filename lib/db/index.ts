@@ -1,5 +1,6 @@
 import { drizzle } from 'drizzle-orm/d1';
 import * as schema from './schema';
+import { getRequestContext } from '@cloudflare/next-on-pages';
 
 /**
  * Database types for Cloudflare D1
@@ -28,7 +29,6 @@ export interface Statement {
 export function getDatabase(): Database {
     // 1. Always try Cloudflare request context first (works on Pages edge)
     try {
-        const { getRequestContext } = require('@cloudflare/next-on-pages');
         const ctx = getRequestContext();
         if (ctx?.env?.DB) {
             return ctx.env.DB as unknown as Database;
