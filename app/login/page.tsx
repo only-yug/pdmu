@@ -1,12 +1,25 @@
 'use client';
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useFormState, useFormStatus } from "react-dom";
 import { authenticate, handleGoogleSignIn } from "@/lib/actions";
 import Image from "next/image";
 
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full h-12 bg-[#111827] dark:bg-blue-600 hover:bg-black dark:hover:bg-blue-700 text-white font-black rounded-xl transition-all shadow-lg active:scale-[0.98] disabled:opacity-50 mt-2"
+    >
+      {pending ? "Signing in..." : "Sign in"}
+    </button>
+  );
+}
+
 export default function LoginPage() {
-  const [errorMessage, dispatch, isPending] = useActionState(authenticate, undefined);
+  const [errorMessage, dispatch] = useFormState(authenticate, undefined);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex items-center justify-center p-4">
@@ -90,13 +103,7 @@ export default function LoginPage() {
 
           {errorMessage && <p className="text-red-500 text-xs font-bold text-center">{errorMessage}</p>}
 
-          <button
-            type="submit"
-            disabled={isPending}
-            className="w-full h-12 bg-[#111827] dark:bg-blue-600 hover:bg-black dark:hover:bg-blue-700 text-white font-black rounded-xl transition-all shadow-lg active:scale-[0.98] disabled:opacity-50 mt-2"
-          >
-            {isPending ? "Signing in..." : "Sign in"}
-          </button>
+          <SubmitButton />
         </form>
 
         <div className="mt-8 pt-6 border-t border-gray-50 dark:border-gray-800 flex flex-col md:flex-row justify-between items-center gap-2 text-[11px]">
