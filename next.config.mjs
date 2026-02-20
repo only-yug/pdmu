@@ -5,7 +5,9 @@ const nextConfig = async () => {
         try {
             // Use dynamic import and check for environment to avoid build-time crashes
             const { getPlatformProxy } = await import('wrangler');
-            const proxy = await getPlatformProxy();
+            const proxy = await getPlatformProxy({
+                persist: true // Force Next.js dev server to use the actual .wrangler state files
+            });
             const { env } = proxy;
 
             if (env.DB) {
