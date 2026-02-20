@@ -1,0 +1,1 @@
+ALTER TABLE `hotels` ADD `is_approved` integer DEFAULT false;

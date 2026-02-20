@@ -1,0 +1,21 @@
+name = "pdumc-alumni-platform"
+compatibility_date = "2025-01-01"
+pages_build_output_dir = ".vercel/output/static"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "pdumc-alumni-db"
+database_id = "2588d2b0-eaf2-4b58-9974-2369aaf7efe5"
+migrations_dir = "db/migrations"
+
+
+
+# Environment variables
+[vars]
+NEXTAUTH_URL = "http://localhost:3000"
+
+# For production, use wrangler secrets:
+# wrangler secret put NEXTAUTH_SECRET
+# wrangler secret put GOOGLE_CLIENT_ID
+# wrangler secret put GOOGLE_CLIENT_SECRET
