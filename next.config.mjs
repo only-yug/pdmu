@@ -37,6 +37,16 @@ const nextConfig = async () => {
                     child_process: false,
                     net: false,
                     tls: false,
+                    stream: false,
+                    crypto: false,
+                };
+            }
+            if (isServer) {
+                // Ignore specific Node.js modules on the Edge runtime
+                config.resolve.fallback = {
+                    ...config.resolve.fallback,
+                    stream: false,
+                    crypto: false,
                 };
             }
             return config;
