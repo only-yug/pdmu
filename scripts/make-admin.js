@@ -15,7 +15,7 @@ if (!email) {
 console.log(`\nPromoting ${email} to Admin...`);
 
 // The SQL command to update the user's role
-const sqlCommand = `UPDATE users SET role = ''admin'' WHERE email = ''${email}''`;
+const sqlCommand = `UPDATE users SET role = 'admin' WHERE email = '${email}'`;
 
 try {
     // Execute via wrangler CLI against the local D1 database
@@ -26,7 +26,7 @@ try {
 
     // Also update the alumni_profiles table just in case they haven't been linked yet,
     // though the 'admin' check is primarily against the users table.
-    const profileSql = `UPDATE alumni_profiles SET fullName = fullName || '' (Admin)'' WHERE email = ''${email}''`;
+    const profileSql = `UPDATE alumni_profiles SET fullName = fullName || ' (Admin)' WHERE email = '${email}'`;
     try {
         execSync(`npx wrangler d1 execute pdumc-alumni-db --local --command="${profileSql}"`, { stdio: 'ignore' });
     } catch (e) {
