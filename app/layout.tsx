@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 import AuthProviders from "@/components/AuthProviders";
+import ProfileCompleteGuard from "@/components/ProfileCompleteGuard";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,11 +23,13 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen flex flex-col bg-slate-50 dark:bg-gray-950 transition-colors duration-300`}>
         <AuthProviders>
-          <Navbar />
-          <main className="flex-grow pt-16">
-            {children}
-          </main>
-          <Footer />
+          <ProfileCompleteGuard>
+            <Navbar />
+            <main className="flex-grow pt-16">
+              {children}
+            </main>
+            <Footer />
+          </ProfileCompleteGuard>
         </AuthProviders>
       </body>
     </html>

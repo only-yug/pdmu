@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { hashPassword } from "@/lib/crypto";
 import { getDrizzleDb } from "@/lib/db";
-import { users, alumniProfiles } from "@/lib/db/schema";
+import { users, alumniProfiles, claimTokens } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 export const runtime = 'edge';
@@ -11,6 +11,7 @@ const registerSchema = z.object({
     fullName: z.string().min(1, "Full name is required"),
     email: z.string().email("Invalid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
+    claimToken: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
             );
         }
 
-        const { fullName, email, password } = validatedData.data;
+        const { fullName, email, password, claimToken } = validatedData.data;
 
         const db = getDrizzleDb();
 
@@ -35,6 +36,49 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: "User with this email already exists" }, { status: 409 });
         }
 
+        // If a claim token is provided, we execute the link flow
+        if (claimToken) {
+            const tokenRecord = await db.select()
+                .from(claimTokens)
+                .where(eq(claimTokens.tokenHash, claimToken))
+                .get();
+
+            if (!tokenRecord || tokenRecord.isUsed || new Date(tokenRecord.expiresAt) < new Date()) {
+                return NextResponse.json({ message: "Invalid or expired claim token" }, { status: 400 });
+            }
+
+            const hashedPassword = await hashPassword(password);
+
+            const userResult = await db.insert(users).values({
+                id: crypto.randomUUID(),
+                email,
+                passwordHash: hashedPassword,
+                role: 'alumni',
+            }).returning({ id: users.id }).get();
+
+            const userId = userResult?.id;
+            if (!userId) throw new Error("Failed to create user");
+
+            // Link the profile!
+            await db.update(alumniProfiles).set({
+                userId,
+                // optionally update fullName and email to match their new registration details, 
+                // or keep the old ones. We'll update them to ensure they match auth.
+                fullName,
+                email,
+            }).where(eq(alumniProfiles.id, tokenRecord.alumniId)).run();
+
+            // Mark token as used
+            await db.update(claimTokens)
+                .set({ isUsed: true })
+                .where(eq(claimTokens.tokenHash, claimToken))
+                .run();
+
+            return NextResponse.json({ message: "Profile claimed successfully", userId }, { status: 201 });
+        }
+
+
+        // NON-CLAIM FLOW (Normal Registration)
         // Check if email exists in alumni_profiles
         const existingProfile = await db.select().from(alumniProfiles).where(eq(alumniProfiles.email, email)).get();
 
@@ -42,8 +86,7 @@ export async function POST(req: Request) {
             // If alumni profile exists but has no linked user, they can link/claim it
             if (!existingProfile.userId) {
                 return NextResponse.json({
-                    message: "An unclaimed profile exists for this email. Please claim it instead.",
-                    redirectTo: `/claim?email=${email}`
+                    message: "An unclaimed profile exists for this email. Please contact Admin for a claim link.",
                 }, { status: 409 });
             } else {
                 return NextResponse.json({ message: "User already registered. Please login." }, { status: 409 });

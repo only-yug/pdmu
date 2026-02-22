@@ -1,0 +1,1 @@
+ALTER TABLE `alumni_profiles` ADD `is_attending` text;

@@ -53,6 +53,7 @@ export const alumniProfiles = sqliteTable("alumni_profiles", {
 
     rsvpAdults: integer("rsvp_adults").default(0),
     rsvpKids: integer("rsvp_kids").default(0),
+    isAttending: text("is_attending", { enum: ["attending", "maybe", "not_attending"] }),
     hotelSelectionId: text("hotel_selection_id").references(() => hotels.id, { onDelete: "set null" }),
     eventId: text("event_id"),
     specialReqs: text("special_reqs"),

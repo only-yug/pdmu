@@ -40,4 +40,5 @@ export const profileUpdateSchema = z.object({
     rsvpKids: z.number().int().min(0).optional(),
     hotelSelectionId: z.string().optional(),
     specialReqs: z.string().optional(),
+    isAttending: z.enum(["attending", "maybe", "not_attending"]).nullable().optional(),
 });

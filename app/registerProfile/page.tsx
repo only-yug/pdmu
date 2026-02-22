@@ -11,6 +11,7 @@ interface Alumni {
     rollNumber: number | null;
     fullName: string;
     city: string | null;
+    state: string | null;
     country: string | null;
     specialization: string | null;
     profilePhotoUrl: string | null;
@@ -48,11 +49,14 @@ function RegisterProfileContent() {
         currentDesignation: "",
         workplace: "",
         country: "India",
+        state: "",
         city: "",
         email: "",
         phoneNumber: "",
         whatsappNumber: "",
         linkedinUrl: "",
+        instagramHandle: "",
+        facebookUrl: "",
         profilePhotoUrl: "",
         isAttending: "maybe",
         rsvpAdults: 0,
@@ -130,6 +134,7 @@ function RegisterProfileContent() {
             rollNumber: alum.rollNumber?.toString() || "",
             fullName: alum.fullName || "",
             city: alum.city || "",
+            state: alum.state || "",
             country: alum.country || "India",
             specialization: alum.specialization || "",
             profilePhotoUrl: alum.profilePhotoUrl || "",
@@ -451,7 +456,7 @@ function RegisterProfileContent() {
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <div>
                                             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">Country *</label>
                                             <select
@@ -470,6 +475,17 @@ function RegisterProfileContent() {
                                                 <option value="Singapore">Singapore</option>
                                                 <option value="Other">Other</option>
                                             </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">State *</label>
+                                            <input
+                                                type="text"
+                                                name="state"
+                                                value={formData.state}
+                                                onChange={handleInputChange}
+                                                className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all shadow-sm"
+                                                placeholder="State/Province"
+                                            />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">City *</label>
@@ -535,6 +551,31 @@ function RegisterProfileContent() {
                                             className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all shadow-sm"
                                             placeholder="LinkedIn profile URL"
                                         />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">Instagram Handle</label>
+                                            <input
+                                                type="text"
+                                                name="instagramHandle"
+                                                value={formData.instagramHandle}
+                                                onChange={handleInputChange}
+                                                className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all shadow-sm"
+                                                placeholder="@username"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">Facebook URL</label>
+                                            <input
+                                                type="text"
+                                                name="facebookUrl"
+                                                value={formData.facebookUrl}
+                                                onChange={handleInputChange}
+                                                className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all shadow-sm"
+                                                placeholder="Facebook Profile URL"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -682,43 +723,6 @@ export default function RegisterProfilePage() {
             }>
                 <RegisterProfileContent />
             </Suspense>
-
-            <style jsx global>{`
-                @keyframes fade-in {
-                    from { opacity: 0; transform: translateY(10px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                @keyframes slide-in {
-                    from { opacity: 0; transform: translateX(20px); }
-                    to { opacity: 1; transform: translateX(0); }
-                }
-                .animate-fade-in {
-                    animation: fade-in 0.5s ease-out forwards;
-                }
-                .animate-slide-in {
-                    animation: slide-in 0.4s ease-out forwards;
-                }
-                .no-scrollbar::-webkit-scrollbar {
-                    display: none;
-                }
-                .no-scrollbar {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                }
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #cbd5e1;
-                    border-radius: 10px;
-                }
-                .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #334155;
-                }
-            `}</style>
         </div>
     );
 }

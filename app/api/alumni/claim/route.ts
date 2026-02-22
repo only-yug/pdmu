@@ -28,13 +28,16 @@ export async function POST(req: Request) {
             specialReqs,
         } = body;
 
+        const { auth } = await import("@/auth");
+        const session = await auth();
+
         if (!alumniId) {
             return NextResponse.json({ message: "Alumni ID is required" }, { status: 400 });
         }
 
         const db = getDrizzleDb();
 
-        // 1. Check if profile exists and is unclaimed (userId is null)
+        // 1. Check if profile exists
         const profile = await db.select()
             .from(alumniProfiles)
             .where(eq(alumniProfiles.id, alumniId))
@@ -44,13 +47,19 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: "Profile not found" }, { status: 404 });
         }
 
+        // 2. Allow claiming if replacing an unclaimed profile OR updating own profile
         if (profile.userId) {
-            return NextResponse.json({ message: "Profile is already claimed" }, { status: 409 });
+            // A user already claimed this profile. Check if it's the CURRENT user.
+            if (!session || !session.user || session.user.id !== profile.userId) {
+                return NextResponse.json({ message: "Profile is already claimed by someone else" }, { status: 409 });
+            }
         }
 
         // 2. Find or create user
         let userId: string | null = null;
-        if (email) {
+        if (session && session.user && session.user.id) {
+            userId = session.user.id;
+        } else if (email) {
             const existingUser = await db.select({ id: users.id })
                 .from(users)
                 .where(eq(users.email, email))
@@ -78,7 +87,10 @@ export async function POST(req: Request) {
                 phoneNumber: phoneNumber || undefined,
                 whatsappNumber: whatsappNumber || undefined,
                 linkedinUrl: linkedinUrl || undefined,
+                instagramHandle: body.instagramHandle || undefined,
+                facebookUrl: body.facebookUrl || undefined,
                 profilePhotoUrl: profilePhotoUrl || undefined,
+                isAttending: body.isAttending || undefined,
                 rsvpAdults: rsvpAdults ?? 0,
                 rsvpKids: rsvpKids ?? 0,
                 hotelSelectionId: hotelSelectionId || null,

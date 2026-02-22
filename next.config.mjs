@@ -19,6 +19,15 @@ const nextConfig = async () => {
     }
 
     return {
+        images: {
+            dangerouslyAllowSVG: true,
+            remotePatterns: [
+                {
+                    protocol: 'https',
+                    hostname: 'placehold.co',
+                },
+            ],
+        },
         async redirects() {
             return [
                 {

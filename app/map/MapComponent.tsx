@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -71,18 +71,76 @@ function MapBounds({ markers }: { markers: any[] }) {
 }
 
 export default function MapComponent({ alumni }: { alumni: any[] }) {
+    const [coordinateCache, setCoordinateCache] = useState<Record<string, [number, number]>>(CITY_COORDINATES);
+    const fetchingRef = useRef<Set<string>>(new Set());
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchMissingCoordinates = async () => {
+            const missingLocations = new Set<string>();
+
+            alumni.forEach(person => {
+                const locationKey = person.city || person.country;
+                if (!locationKey) return;
+
+                // Check if it exists in cache (case-insensitive)
+                const exists = Object.keys(coordinateCache).find(k => k.toLowerCase() === locationKey.toLowerCase());
+
+                if (!exists && !fetchingRef.current.has(locationKey.toLowerCase())) {
+                    missingLocations.add(locationKey);
+                }
+            });
+
+            if (missingLocations.size === 0) return;
+
+            // Fetch sequentially to respect Nominatim rate limit (1 req/sec)
+            for (const location of missingLocations) {
+                if (!isMounted) break;
+
+                // Mark as fetching
+                fetchingRef.current.add(location.toLowerCase());
+
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&limit=1`);
+                    const data = await response.json() as any[];
+
+                    if (data && data.length > 0 && isMounted) {
+                        const lat = parseFloat(data[0].lat);
+                        const lon = parseFloat(data[0].lon);
+
+                        setCoordinateCache(prev => ({
+                            ...prev,
+                            [location]: [lat, lon]
+                        }));
+                    }
+                } catch (error) {
+                    console.error(`Geocoding failed for ${location}:`, error);
+                }
+
+                // Wait 1.5 seconds between requests
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+        };
+
+        fetchMissingCoordinates();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [alumni, coordinateCache]);
 
     // Convert alumni to markers
     const markers = alumni.map(person => {
         // Try city, then country, then fallback
         const locationKey = person.city || person.country || "India";
         // Normalize checking (case-insensitive find)
-        const key = Object.keys(CITY_COORDINATES).find(k => k.toLowerCase() === locationKey.toLowerCase())
-            || (person.country ? Object.keys(CITY_COORDINATES).find(k => k.toLowerCase() === person.country.toLowerCase()) : null)
+        const key = Object.keys(coordinateCache).find(k => k.toLowerCase() === locationKey.toLowerCase())
+            || (person.country ? Object.keys(coordinateCache).find(k => k.toLowerCase() === person.country.toLowerCase()) : null)
             || "India";
 
         // Add random jitter to avoid exact overlap
-        const baseCoords = CITY_COORDINATES[key] || CITY_COORDINATES["India"];
+        const baseCoords = coordinateCache[key] || coordinateCache["India"];
         const jitterLat = (Math.random() - 0.5) * 0.01;
         const jitterLng = (Math.random() - 0.5) * 0.01;
 

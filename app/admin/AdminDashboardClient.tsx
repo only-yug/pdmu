@@ -63,6 +63,8 @@ export default function AdminDashboardClient({
     const [showHotelForm, setShowHotelForm] = useState(false);
     const [eventFormMsg, setEventFormMsg] = useState<string | null>(null);
     const [hotelFormMsg, setHotelFormMsg] = useState<string | null>(null);
+    const [claimLinkParams, setClaimLinkParams] = useState<{ url: string; name: string } | null>(null);
+    const [isGeneratingLink, setIsGeneratingLink] = useState(false);
 
     const tabs: { key: Tab; label: string }[] = [
         { key: "overview", label: "Overview" },
@@ -82,6 +84,10 @@ export default function AdminDashboardClient({
             eventEndDate: fd.get("eventEndDate") || undefined,
             venueName: fd.get("venueName"),
             venueAddress: fd.get("venueAddress"),
+            rsvpDeadline: fd.get("rsvpDeadline") || undefined,
+            bannerImageUrl: fd.get("bannerImageUrl") || undefined,
+            eventScheduleJson: fd.get("eventScheduleJson") || undefined,
+            importantNotesText: fd.get("importantNotesText") || undefined,
         };
 
         try {
@@ -127,6 +133,28 @@ export default function AdminDashboardClient({
             }
         } catch {
             setHotelFormMsg("Network error");
+        }
+    };
+
+    // Claim link generation
+    const handleGenerateClaimLink = async (alumniId: string, fullName: string) => {
+        setIsGeneratingLink(true);
+        try {
+            const res = await fetch("/api/admin/claims/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ alumniId }),
+            });
+            const data = await res.json() as { claimUrl?: string; error?: string };
+            if (res.ok && data.claimUrl) {
+                setClaimLinkParams({ url: data.claimUrl, name: fullName });
+            } else {
+                alert(data.error || "Failed to generate link");
+            }
+        } catch {
+            alert("Network error occurred");
+        } finally {
+            setIsGeneratingLink(false);
         }
     };
 
@@ -178,6 +206,7 @@ export default function AdminDashboardClient({
                                     <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Location</th>
                                     <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Status</th>
                                     <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">RSVP</th>
+                                    <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -201,6 +230,17 @@ export default function AdminDashboardClient({
                                             {(a.rsvpAdults || 0) > 0
                                                 ? `${a.rsvpAdults}A ${a.rsvpKids || 0}K`
                                                 : "—"}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {!a.userId && (
+                                                <button
+                                                    onClick={() => handleGenerateClaimLink(a.id, a.fullName)}
+                                                    disabled={isGeneratingLink}
+                                                    className="px-3 py-1 bg-green-100 hover:bg-green-200 text-green-700 rounded text-xs font-semibold transition-colors disabled:opacity-50"
+                                                >
+                                                    Generate Link
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}
@@ -239,6 +279,16 @@ export default function AdminDashboardClient({
                             </div>
                             <FormInput name="venueName" label="Venue Name" required />
                             <FormInput name="venueAddress" label="Venue Address" />
+                            <FormInput name="rsvpDeadline" label="RSVP Deadline" type="datetime-local" />
+                            <FormInput name="bannerImageUrl" label="Banner Image URL" />
+                            <div>
+                                <label htmlFor="eventScheduleJson" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Event Schedule (JSON string optional)</label>
+                                <textarea name="eventScheduleJson" id="eventScheduleJson" rows={3} className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm"></textarea>
+                            </div>
+                            <div>
+                                <label htmlFor="importantNotesText" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Important Notes</label>
+                                <textarea name="importantNotesText" id="importantNotesText" rows={3} className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm"></textarea>
+                            </div>
                             <button type="submit" className="px-6 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
                                 Create Event
                             </button>
@@ -306,6 +356,45 @@ export default function AdminDashboardClient({
                         {hotelList.length === 0 && (
                             <p className="text-gray-500 dark:text-gray-400 text-center py-8">No hotels yet</p>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Claim Link Modal/Popup */}
+            {claimLinkParams && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 w-full max-w-lg p-6 relative overflow-hidden">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Claim Link Generated!</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                            Copy this secure link and send it directly to <strong className="text-gray-900 dark:text-white">{claimLinkParams.name}</strong>.
+                            They can use it to create their account and claim this profile.
+                        </p>
+
+                        <div className="relative group mb-6">
+                            <input
+                                readOnly
+                                value={claimLinkParams.url}
+                                className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-lg pr-24 py-3 pl-4 focus:ring-0 focus:border-gray-300 outline-none"
+                            />
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(claimLinkParams.url);
+                                    alert("Copied directly to clipboard!");
+                                }}
+                                className="absolute right-2 top-2 px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium transition-colors"
+                            >
+                                Copy
+                            </button>
+                        </div>
+
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setClaimLinkParams(null)}
+                                className="px-5 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

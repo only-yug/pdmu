@@ -23,6 +23,7 @@ interface Profile {
     linkedinUrl: string | null;
     instagramHandle: string | null;
     facebookUrl: string | null;
+    isAttending: string | null;
     rsvpAdults: number;
     rsvpKids: number;
     specialReqs: string | null;
@@ -235,6 +236,35 @@ export default function ProfilePage() {
                         <Field label="Facebook URL" name="facebookUrl" value={formData.facebookUrl || ""} onChange={handleChange} editing={isEditing} />
                     </Section>
 
+                    {/* RSVP Status */}
+                    <Section title="RSVP Status">
+                        {isEditing ? (
+                            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div className="md:col-span-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Attending?</div>
+                                {["attending", "maybe", "not_attending"].map((opt) => (
+                                    <button
+                                        key={opt}
+                                        type="button"
+                                        onClick={() => setFormData(prev => ({ ...prev, isAttending: opt }))}
+                                        className={`py-2 px-3 rounded-lg border text-sm font-medium transition-all ${formData.isAttending === opt
+                                            ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+                                            : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"}`}
+                                    >
+                                        {opt.replace('_', ' ').charAt(0).toUpperCase() + opt.replace('_', ' ').slice(1)}
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <Field label="Attending?" name="isAttending" value={formData.isAttending?.replace('_', ' ').toUpperCase() || "—"} onChange={handleChange} editing={false} />
+                        )}
+                        {formData.isAttending === 'attending' && (
+                            <>
+                                <Field label="Adults (Including yourself)" name="rsvpAdults" value={String(formData.rsvpAdults || 0)} onChange={(e) => setFormData(p => ({ ...p, rsvpAdults: parseInt(e.target.value) || 0 }))} editing={isEditing} type="number" />
+                                <Field label="Kids" name="rsvpKids" value={String(formData.rsvpKids || 0)} onChange={(e) => setFormData(p => ({ ...p, rsvpKids: parseInt(e.target.value) || 0 }))} editing={isEditing} type="number" />
+                            </>
+                        )}
+                    </Section>
+
                     {/* Bio */}
                     <Section title="About">
                         <TextArea label="Bio / Journey" name="bioJourney" value={formData.bioJourney || ""} onChange={handleChange} editing={isEditing} />
@@ -257,9 +287,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     );
 }
 
-function Field({ label, name, value, onChange, editing }: {
+function Field({ label, name, value, onChange, editing, type = "text" }: {
     label: string; name: string; value: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; editing: boolean;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; editing: boolean; type?: string;
 }) {
     if (!editing) {
         return (
@@ -273,6 +303,7 @@ function Field({ label, name, value, onChange, editing }: {
         <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">{label}</label>
             <input
+                type={type}
                 name={name}
                 value={value}
                 onChange={onChange}

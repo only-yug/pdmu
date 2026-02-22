@@ -29,7 +29,7 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
     // Form State
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [year, setYear] = useState("");
+    const [imageDate, setImageDate] = useState("");
     const [file, setFile] = useState<File | null>(null);
     const [video, setVideo] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,7 +54,7 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
         const formData = new FormData();
         formData.append("title", title);
         formData.append("description", description);
-        if (year) formData.append("year", year);
+        if (imageDate) formData.append("imageDate", imageDate);
         if (file) formData.append("file", file);
         if (video) formData.append("video", video);
 
@@ -71,7 +71,7 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
                 // Reset form
                 setTitle("");
                 setDescription("");
-                setYear("");
+                setImageDate("");
                 setFile(null);
                 setVideo(null);
             } else {
@@ -240,14 +240,13 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
                                         ></textarea>
                                     </div>
                                     <div>
-                                        <label htmlFor="year" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Year (optional)</label>
+                                        <label htmlFor="imageDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Image Date (optional)</label>
                                         <input
-                                            type="text" // using text to allow flexibility or just parse to int
-                                            id="year"
+                                            type="date"
+                                            id="imageDate"
                                             className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                            placeholder="e.g., 2001, 2002"
-                                            value={year}
-                                            onChange={(e) => setYear(e.target.value)}
+                                            value={imageDate}
+                                            onChange={(e) => setImageDate(e.target.value)}
                                         />
                                     </div>
 

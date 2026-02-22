@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
         const formData = await req.formData();
         const title = formData.get("title") as string;
         const description = formData.get("description") as string;
+        const imageDateStr = formData.get("imageDate") as string | null;
         const file = formData.get("file") as File | null;
         const videoFile = formData.get("video") as File | null;
 
@@ -52,6 +53,7 @@ export async function POST(req: NextRequest) {
             id: crypto.randomUUID(),
             imageTitle: title,
             imageDescription: description || undefined,
+            imageDate: imageDateStr ? new Date(imageDateStr) : undefined,
             uploadPhotoUrl: photoUrl || undefined,
             uploadVideoUrl: videoUrl || undefined,
             uploadedBy: userId,
