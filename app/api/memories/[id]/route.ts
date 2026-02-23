@@ -9,7 +9,7 @@ export const runtime = 'edge';
 // DELETE: Remove a memory (owner or admin only)
 export async function DELETE(
     req: Request,
-    { params }: { params: Promise<{ id: string }> }
+    { params }: { params: { id: string } }
 ) {
     try {
         const session = await auth();
@@ -17,7 +17,7 @@ export async function DELETE(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { id } = await params;
+        const { id } = params;
 
         const db = getDrizzleDb();
 

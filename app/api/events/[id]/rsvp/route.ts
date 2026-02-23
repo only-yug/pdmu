@@ -6,14 +6,14 @@ import { eq } from "drizzle-orm";
 
 export const runtime = 'edge';
 
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(req: Request, { params }: { params: { id: string } }) {
     try {
         const session = await auth();
         if (!session || !session.user || !session.user.email) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { id } = await params;  // eventId — kept for future use when eventRegistrations is re-added
+        const { id } = params;  // eventId — kept for future use when eventRegistrations is re-added
         const body = await req.json() as Record<string, any>;
         const { adults, kids, hotelId, specialReqs } = body;
 

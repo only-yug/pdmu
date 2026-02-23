@@ -20,7 +20,9 @@ async function getEvents() {
             .orderBy(asc(events.eventStartDate));
 
         return result.map(e => ({
-            ...e,
+            id: e.id,
+            title: e.title,
+            description: e.description,
             event_date: e.eventStartDate,
             venue: e.venueName,
             banner_image_url: e.bannerImageUrl,

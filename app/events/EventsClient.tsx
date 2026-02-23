@@ -8,11 +8,11 @@ import { useSession } from "next-auth/react";
 interface Event {
     id: string;
     title: string;
-    description: string;
+    description: string | null;
     event_date: string | Date;
     start_time: string;
     venue: string;
-    banner_image_url: string;
+    banner_image_url: string | null;
 }
 
 export default function EventsClient({ initialEvents }: { initialEvents: Event[] }) {
