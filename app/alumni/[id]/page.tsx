@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getDrizzleDb } from "@/lib/db";
 import { eq } from "drizzle-orm";
+import { alumniProfiles } from "@/lib/db/schema";
 import Link from "next/link";
 import Image from "next/image";
 import { auth } from "@/auth";
