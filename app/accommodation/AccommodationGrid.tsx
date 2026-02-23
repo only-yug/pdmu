@@ -5,6 +5,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 interface Hotel {
     id: string | number;
@@ -23,7 +24,9 @@ export default function AccommodationGrid({ initialHotels }: { initialHotels: Ho
     const [description, setDescription] = useState("");
     const [websiteUrl, setWebsiteUrl] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeletingId, setIsDeletingId] = useState<string | number | null>(null);
     const router = useRouter();
+    const { data: session } = useSession();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -54,6 +57,29 @@ export default function AccommodationGrid({ initialHotels }: { initialHotels: Ho
         }
     };
 
+    const handleDelete = async (id: string | number) => {
+        if (!confirm("Are you sure you want to permanently delete this hotel suggestion?")) return;
+
+        setIsDeletingId(id);
+        try {
+            const response = await fetch(`/api/admin/hotels/${id}`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                setHotels(prev => prev.filter(h => h.id !== id));
+                router.refresh();
+            } else {
+                alert("Failed to delete hotel. You must be an admin.");
+            }
+        } catch (error) {
+            console.error("Error deleting hotel:", error);
+            alert("An error occurred while deleting.");
+        } finally {
+            setIsDeletingId(null);
+        }
+    };
+
 
     return (
         <div className="container mx-auto px-6 lg:px-20 py-8 relative">
@@ -71,17 +97,20 @@ export default function AccommodationGrid({ initialHotels }: { initialHotels: Ho
                     <span>🎉</span> Contracted rates coming soon!
                 </div>
 
-                <div>
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="bg-white text-blue-600 px-5 py-2.5 rounded-full font-bold hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto text-sm"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                        </svg>
-                        Suggest Hotel
-                    </button>
-                </div>
+                {/* Create Access given to both Batchmates and Admins */}
+                {(session?.user?.alumniProfileId || session?.user?.role === 'admin') && (
+                    <div>
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="bg-white text-blue-600 px-5 py-2.5 rounded-full font-bold hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto text-sm"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                            </svg>
+                            Suggest Hotel
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Grid */}
@@ -115,6 +144,20 @@ export default function AccommodationGrid({ initialHotels }: { initialHotels: Ho
                                 </svg>
                                 Visit Website
                             </a>
+
+                            {/* Admin Deletion Control */}
+                            {session?.user?.role === 'admin' && (
+                                <button
+                                    onClick={() => handleDelete(hotel.id)}
+                                    disabled={isDeletingId === hotel.id}
+                                    className="mt-3 w-full bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2 px-4 rounded-lg border border-red-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 text-sm"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    {isDeletingId === hotel.id ? "Deleting..." : "Delete Hotel"}
+                                </button>
+                            )}
                         </div>
                     ))}
                 </div>

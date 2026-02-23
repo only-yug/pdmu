@@ -9,8 +9,8 @@ export const runtime = 'edge';
 export async function POST(req: NextRequest) {
     try {
         const session = await auth();
-        if (!session?.user?.id) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        if (!session?.user?.alumniProfileId && session?.user?.role !== 'admin') {
+            return NextResponse.json({ error: "Unauthorized: Only batchmates or admins can share memories" }, { status: 403 });
         }
         const userId = session.user.id;
 

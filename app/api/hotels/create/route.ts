@@ -15,8 +15,12 @@ export async function POST(req: NextRequest) {
         }
 
         const session = await auth();
-        // Fallback to null or system user if not logged in (though middleware should catch this)
-        const userId = session?.user?.id ? session.user.id : "1";
+
+        if (!session?.user?.alumniProfileId && session?.user?.role !== 'admin') {
+            return NextResponse.json({ success: false, message: "Unauthorized: Only batchmates or admins can suggest hotels" }, { status: 403 });
+        }
+
+        const userId = session.user.id;
 
         const db = getDrizzleDb();
 

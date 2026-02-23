@@ -49,11 +49,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const passwordsMatch = await verifyPassword(password, user.passwordHash || "");
 
           if (passwordsMatch) {
+            // Fetch alumni profile to see if this user is a batchmate
+            const db = getDrizzleDb();
+            const profile = await db.select()
+              .from(alumniProfiles)
+              .where(eq(alumniProfiles.email, user.email))
+              .get();
+
             return {
               id: user.id.toString(),
               email: user.email,
               name: user.email,
               role: user.role,
+              alumniProfileId: profile?.id,
             };
           }
         }
@@ -65,42 +73,54 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     ...authConfig.callbacks,
 
-    // Auto-create user + alumniProfile on first Google sign-in
+    // Auto-create user + Link alumniProfile on first Google sign-in
     async signIn({ user, account }) {
       if (account?.provider === 'google' && user.email) {
         try {
           const database = getDrizzleDb();
+
+          // 1. Whitelist Check: does this email exist in the prepopulated 50 profiles?
+          const profile = await database.select()
+            .from(alumniProfiles)
+            .where(eq(alumniProfiles.email, user.email))
+            .get();
+
+          // 2. Check if general User record already exists
           const existingUser = await database.select()
             .from(users)
             .where(eq(users.email, user.email))
             .get();
 
+          let currentUserId = existingUser?.id;
+
           if (!existingUser) {
             // Create user account
-            const newUserId = crypto.randomUUID();
+            currentUserId = crypto.randomUUID();
             await database.insert(users).values({
-              id: newUserId,
+              id: currentUserId,
               email: user.email,
               passwordHash: '', // Google users don't have passwords
-              role: 'alumni',
+              role: 'alumni', // Standard role
             }).run();
-
-            // Create empty alumni profile linked to the new user
-            await database.insert(alumniProfiles).values({
-              id: crypto.randomUUID(),
-              userId: newUserId,
-              email: user.email,
-              fullName: user.name || user.email.split('@')[0],
-            }).run();
-
-            // Set user.id so JWT callback picks up the right id
-            user.id = newUserId;
-            (user as any).role = 'alumni';
-          } else {
-            // Existing user — set id/role so JWT gets correct values
-            user.id = existingUser.id;
-            (user as any).role = existingUser.role;
           }
+
+          // 3. Link the session variables
+          user.id = currentUserId!;
+          (user as any).role = existingUser?.role || 'alumni';
+
+          // 4. If they are a whitelisted batchmate, link their profile
+          if (profile) {
+            (user as any).alumniProfileId = profile.id;
+
+            // If the profile isn't associated with the User DB yet, link it
+            if (!profile.userId) {
+              await database.update(alumniProfiles)
+                .set({ userId: currentUserId })
+                .where(eq(alumniProfiles.id, profile.id))
+                .run();
+            }
+          }
+
         } catch (error) {
           console.error('Google sign-in user creation error:', error);
           return false; // Block sign-in on error

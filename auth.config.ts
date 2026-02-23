@@ -1,12 +1,25 @@
 import type { NextAuthConfig } from "next-auth";
 
+declare module "next-auth" {
+  interface User {
+    role: 'alumni' | 'admin';
+    alumniProfileId?: string; // Links them to the batchmate group
+  }
+  interface Session {
+    user: {
+      id: string;
+      role: 'alumni' | 'admin';
+      alumniProfileId?: string;
+    } & import("next-auth").DefaultSession["user"];
+  }
+}
+
 export const authConfig = {
   pages: {
     signIn: '/login',
     signOut: '/logout',
     error: '/auth/error',
     verifyRequest: '/auth/verify-request',
-    newUser: '/register'
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
@@ -27,7 +40,7 @@ export const authConfig = {
         return false; // Redirect unauthenticated users to login page
       }
 
-      if (isLoggedIn && (nextUrl.pathname === '/login' || nextUrl.pathname === '/register')) {
+      if (isLoggedIn && (nextUrl.pathname === '/login' || nextUrl.pathname === '/register' || nextUrl.pathname === '/registerProfile')) {
         return Response.redirect(new URL('/leading', nextUrl));
       }
 
@@ -37,19 +50,21 @@ export const authConfig = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.alumniProfileId = user.alumniProfileId;
       }
 
       // Update token if session was updated
-      if (trigger === "update" && session) {
-        token = { ...token, ...session };
+      if (trigger === "update" && session && session.user) {
+        token.alumniProfileId = session.user.alumniProfileId;
       }
 
       return token;
     },
     async session({ session, token }) {
-      if (token) {
+      if (token && session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as 'alumni' | 'admin';
+        session.user.alumniProfileId = token.alumniProfileId as string | undefined;
       }
       return session;
     },

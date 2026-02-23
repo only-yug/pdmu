@@ -5,6 +5,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 interface Memory {
     id: string;
@@ -33,7 +34,9 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
     const [file, setFile] = useState<File | null>(null);
     const [video, setVideo] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
     const router = useRouter();
+    const { data: session } = useSession();
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -85,6 +88,30 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
         }
     };
 
+    const handleDelete = async (id: string) => {
+        if (!confirm("Are you sure you want to permanently delete this memory?")) return;
+
+        setIsDeletingId(id);
+        try {
+            const response = await fetch(`/api/admin/memories/${id}`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                // Optimistically remove from UI
+                setMemories(prev => prev.filter(m => m.id !== id));
+                router.refresh();
+            } else {
+                alert("Failed to delete memory. You must be an admin.");
+            }
+        } catch (error) {
+            console.error("Error deleting memory:", error);
+            alert("An error occurred while deleting.");
+        } finally {
+            setIsDeletingId(null);
+        }
+    };
+
 
     return (
         <div className="container mx-auto px-6 lg:px-32 py-8 relative">
@@ -99,15 +126,18 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
                     </h1>
                     <p className="text-teal-100">Share your favorite moments from college days</p>
                 </div>
-                <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold hover:bg-blue-50 transition-colors flex items-center gap-2 shadow-sm"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                    </svg>
-                    Share Memory
-                </button>
+                {/* Create Access given to both Batchmates and Admins */}
+                {(session?.user?.alumniProfileId || session?.user?.role === 'admin') && (
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold hover:bg-blue-50 transition-colors flex items-center gap-2 shadow-sm"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                        </svg>
+                        Share Memory
+                    </button>
+                )}
             </div>
 
             {/* Grid */}
@@ -173,6 +203,20 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
                                         0
                                     </div>
                                 </div>
+
+                                {/* Admin Deletion Control */}
+                                {session?.user?.role === 'admin' && (
+                                    <button
+                                        onClick={() => handleDelete(memory.id)}
+                                        disabled={isDeletingId === memory.id}
+                                        className="mt-4 w-full bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2 px-4 rounded-lg border border-red-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        {isDeletingId === memory.id ? "Deleting..." : "Delete Memory"}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}
