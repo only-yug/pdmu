@@ -1,6 +1,7 @@
 
 import Link from "next/link";
 import { getDatabase } from "@/lib/db";
+export const runtime = 'edge';
 
 async function getStats() {
     try {

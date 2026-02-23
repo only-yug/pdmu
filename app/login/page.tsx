@@ -1,6 +1,7 @@
 'use client';
 
 import { handleGoogleSignIn } from "@/lib/actions";
+export const runtime = 'edge';
 
 export default function LoginPage() {
   return (

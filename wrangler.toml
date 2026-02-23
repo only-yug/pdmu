@@ -14,7 +14,7 @@ migrations_dir = "db/migrations"
 
 # Environment variables
 [vars]
-NEXTAUTH_URL = "http://localhost:3000"
+# NEXTAUTH_URL = "http://localhost:3000"
 
 # For production, use wrangler secrets:
 # wrangler secret put NEXTAUTH_SECRET

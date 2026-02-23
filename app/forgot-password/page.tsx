@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+export const runtime = 'edge';
 import Link from "next/link";
 
 export default function ForgotPasswordPage() {
