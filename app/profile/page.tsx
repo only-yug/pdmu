@@ -38,6 +38,7 @@ export default function ProfilePage() {
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
     const [formData, setFormData] = useState<Partial<Profile>>({});
+    const [errors, setErrors] = useState<Record<string, string[]>>({});
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -91,6 +92,7 @@ export default function ProfilePage() {
     const handleSave = async () => {
         setIsSaving(true);
         setMessage(null);
+        setErrors({});
 
         try {
             const res = await fetch("/api/user/profile", {
@@ -106,7 +108,12 @@ export default function ProfilePage() {
                 setProfile({ ...profile, ...formData } as Profile);
                 setIsEditing(false);
             } else {
-                setMessage({ type: "error", text: data.error || "Failed to update" });
+                if (data.details?.fieldErrors) {
+                    setErrors(data.details.fieldErrors);
+                    setMessage({ type: "error", text: "Please fix the validation errors below." });
+                } else {
+                    setMessage({ type: "error", text: data.error || "Failed to update" });
+                }
             }
         } catch {
             setMessage({ type: "error", text: "Network error" });
@@ -154,7 +161,7 @@ export default function ProfilePage() {
                 ) : (
                     <div className="flex gap-2">
                         <button
-                            onClick={() => { setIsEditing(false); setFormData(profile); setMessage(null); }}
+                            onClick={() => { setIsEditing(false); setFormData(profile); setMessage(null); setErrors({}); }}
                             className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
                         >
                             Cancel
@@ -214,26 +221,26 @@ export default function ProfilePage() {
                 <div className="p-8 space-y-8">
                     {/* Professional */}
                     <Section title="Professional Info">
-                        <Field label="Full Name" name="fullName" value={formData.fullName || ""} onChange={handleChange} editing={isEditing} />
-                        <Field label="Specialization" name="specialization" value={formData.specialization || ""} onChange={handleChange} editing={isEditing} />
-                        <Field label="Current Designation" name="currentDesignation" value={formData.currentDesignation || ""} onChange={handleChange} editing={isEditing} />
-                        <Field label="Workplace" name="workplace" value={formData.workplace || ""} onChange={handleChange} editing={isEditing} />
+                        <Field label="Full Name" name="fullName" value={formData.fullName || ""} onChange={handleChange} editing={isEditing} error={errors.fullName?.[0]} />
+                        <Field label="Specialization" name="specialization" value={formData.specialization || ""} onChange={handleChange} editing={isEditing} error={errors.specialization?.[0]} />
+                        <Field label="Current Designation" name="currentDesignation" value={formData.currentDesignation || ""} onChange={handleChange} editing={isEditing} error={errors.currentDesignation?.[0]} />
+                        <Field label="Workplace" name="workplace" value={formData.workplace || ""} onChange={handleChange} editing={isEditing} error={errors.workplace?.[0]} />
                     </Section>
 
                     {/* Location */}
                     <Section title="Location">
-                        <Field label="Country" name="country" value={formData.country || ""} onChange={handleChange} editing={isEditing} />
-                        <Field label="State" name="state" value={formData.state || ""} onChange={handleChange} editing={isEditing} />
-                        <Field label="City" name="city" value={formData.city || ""} onChange={handleChange} editing={isEditing} />
+                        <Field label="Country" name="country" value={formData.country || ""} onChange={handleChange} editing={isEditing} error={errors.country?.[0]} />
+                        <Field label="State" name="state" value={formData.state || ""} onChange={handleChange} editing={isEditing} error={errors.state?.[0]} />
+                        <Field label="City" name="city" value={formData.city || ""} onChange={handleChange} editing={isEditing} error={errors.city?.[0]} />
                     </Section>
 
                     {/* Contact */}
                     <Section title="Contact">
-                        <Field label="Phone Number" name="phoneNumber" value={formData.phoneNumber || ""} onChange={handleChange} editing={isEditing} />
-                        <Field label="WhatsApp Number" name="whatsappNumber" value={formData.whatsappNumber || ""} onChange={handleChange} editing={isEditing} />
-                        <Field label="LinkedIn URL" name="linkedinUrl" value={formData.linkedinUrl || ""} onChange={handleChange} editing={isEditing} />
-                        <Field label="Instagram Handle" name="instagramHandle" value={formData.instagramHandle || ""} onChange={handleChange} editing={isEditing} />
-                        <Field label="Facebook URL" name="facebookUrl" value={formData.facebookUrl || ""} onChange={handleChange} editing={isEditing} />
+                        <Field label="Phone Number" name="phoneNumber" value={formData.phoneNumber || ""} onChange={handleChange} editing={isEditing} error={errors.phoneNumber?.[0]} />
+                        <Field label="WhatsApp Number" name="whatsappNumber" value={formData.whatsappNumber || ""} onChange={handleChange} editing={isEditing} error={errors.whatsappNumber?.[0]} />
+                        <Field label="LinkedIn URL" name="linkedinUrl" value={formData.linkedinUrl || ""} onChange={handleChange} editing={isEditing} error={errors.linkedinUrl?.[0]} />
+                        <Field label="Instagram Handle" name="instagramHandle" value={formData.instagramHandle || ""} onChange={handleChange} editing={isEditing} error={errors.instagramHandle?.[0]} />
+                        <Field label="Facebook URL" name="facebookUrl" value={formData.facebookUrl || ""} onChange={handleChange} editing={isEditing} error={errors.facebookUrl?.[0]} />
                     </Section>
 
                     {/* RSVP Status */}
@@ -259,16 +266,16 @@ export default function ProfilePage() {
                         )}
                         {formData.isAttending === 'attending' && (
                             <>
-                                <Field label="Adults (Including yourself)" name="rsvpAdults" value={String(formData.rsvpAdults || 0)} onChange={(e) => setFormData(p => ({ ...p, rsvpAdults: parseInt(e.target.value) || 0 }))} editing={isEditing} type="number" />
-                                <Field label="Kids" name="rsvpKids" value={String(formData.rsvpKids || 0)} onChange={(e) => setFormData(p => ({ ...p, rsvpKids: parseInt(e.target.value) || 0 }))} editing={isEditing} type="number" />
+                                <Field label="Adults (Including yourself)" name="rsvpAdults" value={String(formData.rsvpAdults || 0)} onChange={(e) => setFormData(p => ({ ...p, rsvpAdults: parseInt(e.target.value) || 0 }))} editing={isEditing} type="number" error={errors.rsvpAdults?.[0]} />
+                                <Field label="Kids" name="rsvpKids" value={String(formData.rsvpKids || 0)} onChange={(e) => setFormData(p => ({ ...p, rsvpKids: parseInt(e.target.value) || 0 }))} editing={isEditing} type="number" error={errors.rsvpKids?.[0]} />
                             </>
                         )}
                     </Section>
 
                     {/* Bio */}
                     <Section title="About">
-                        <TextArea label="Bio / Journey" name="bioJourney" value={formData.bioJourney || ""} onChange={handleChange} editing={isEditing} />
-                        <TextArea label="Favorite Memories" name="favoriteMemories" value={formData.favoriteMemories || ""} onChange={handleChange} editing={isEditing} />
+                        <TextArea label="Bio / Journey" name="bioJourney" value={formData.bioJourney || ""} onChange={handleChange} editing={isEditing} error={errors.bioJourney?.[0]} />
+                        <TextArea label="Favorite Memories" name="favoriteMemories" value={formData.favoriteMemories || ""} onChange={handleChange} editing={isEditing} error={errors.favoriteMemories?.[0]} />
                     </Section>
                 </div>
             </div>
@@ -287,9 +294,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     );
 }
 
-function Field({ label, name, value, onChange, editing, type = "text" }: {
+function Field({ label, name, value, onChange, editing, type = "text", error }: {
     label: string; name: string; value: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; editing: boolean; type?: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; editing: boolean; type?: string; error?: string;
 }) {
     if (!editing) {
         return (
@@ -307,15 +314,16 @@ function Field({ label, name, value, onChange, editing, type = "text" }: {
                 name={name}
                 value={value}
                 onChange={onChange}
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                className={`w-full px-3 py-2 rounded-lg border ${error ? 'border-red-500 focus:ring-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-300 dark:border-gray-700 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800'} text-gray-900 dark:text-white text-sm focus:ring-2 focus:border-transparent transition-all`}
             />
+            {error && <p className="text-red-500 text-xs mt-1 font-medium">{error}</p>}
         </div>
     );
 }
 
-function TextArea({ label, name, value, onChange, editing }: {
+function TextArea({ label, name, value, onChange, editing, error }: {
     label: string; name: string; value: string;
-    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; editing: boolean;
+    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; editing: boolean; error?: string;
 }) {
     if (!editing) {
         return (
@@ -333,8 +341,9 @@ function TextArea({ label, name, value, onChange, editing }: {
                 value={value}
                 onChange={onChange}
                 rows={3}
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                className={`w-full px-3 py-2 rounded-lg border ${error ? 'border-red-500 focus:ring-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-300 dark:border-gray-700 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800'} text-gray-900 dark:text-white text-sm focus:ring-2 focus:border-transparent transition-all`}
             />
+            {error && <p className="text-red-500 text-xs mt-1 font-medium">{error}</p>}
         </div>
     );
 }

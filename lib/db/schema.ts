@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { text, integer, sqliteTable, index } from "drizzle-orm/sqlite-core";
+import { text, integer, sqliteTable, index, primaryKey } from "drizzle-orm/sqlite-core";
 
 // ─── USERS ────────────────────────────────────────────────────────────────────
 export const users = sqliteTable("users", {
@@ -111,3 +111,14 @@ export const events = sqliteTable("events", {
     createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
 });
+
+// ─── EVENT ATTENDEES ──────────────────────────────────────────────────────────
+export const eventAttendees = sqliteTable("event_attendees", {
+    eventId: text("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+    alumniId: text("alumni_id").notNull().references(() => alumniProfiles.id, { onDelete: "cascade" }),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+}, (table) => ({
+    pk: primaryKey({ columns: [table.eventId, table.alumniId] }),
+    eventIdIdx: index("idx_event_attendees_event_id").on(table.eventId),
+    alumniIdIdx: index("idx_event_attendees_alumni_id").on(table.alumniId),
+}));

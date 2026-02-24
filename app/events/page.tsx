@@ -15,6 +15,9 @@ async function getEvents() {
             venueName: events.venueName,
             bannerImageUrl: events.bannerImageUrl,
             venueAddress: events.venueAddress,
+            rsvpDeadline: events.rsvpDeadline,
+            totalBatchmatesCount: events.totalBatchmatesCount,
+            totalAttendeesCount: events.totalAttendeesCount,
         })
             .from(events)
             .orderBy(asc(events.eventStartDate));
@@ -25,8 +28,12 @@ async function getEvents() {
             description: e.description,
             event_date: e.eventStartDate,
             venue: e.venueName,
+            venueAddress: e.venueAddress,
             banner_image_url: e.bannerImageUrl,
             start_time: e.eventStartDate ? new Date(e.eventStartDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+            rsvpDeadline: e.rsvpDeadline,
+            totalBatchmatesCount: e.totalBatchmatesCount || 0,
+            totalAttendeesCount: e.totalAttendeesCount || 0,
         }));
     } catch (e) {
         console.error(e);

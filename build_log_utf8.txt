@@ -1,0 +1,184 @@
+﻿
+> pdumc2001.com@1.0.0 build
+> next build
+
+  Γû▓ Next.js 14.2.15
+  - Environments: .env
+
+   Creating an optimized production build ...
+node.exe :  ΓÜá Compiled with warnings
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" 
+"C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecif 
+   ied: ( ΓÜá Compiled with warnings:S  
+  tring) [], RemoteException
+    + FullyQualifiedErrorId : NativeCom 
+   mandError
+ 
+
+./app/api/dev-wipe/route.ts
+Attempted import error: 'accounts' is 
+not exported from '@/lib/db/schema' 
+(imported as 'accounts').
+
+Import trace for requested module:
+./app/api/dev-wipe/route.ts
+
+./app/api/dev-wipe/route.ts
+Attempted import error: 'sessions' is 
+not exported from '@/lib/db/schema' 
+(imported as 'sessions').
+
+Import trace for requested module:
+./app/api/dev-wipe/route.ts
+
+./app/api/dev-wipe/route.ts
+Attempted import error: 
+'verificationTokens' is not exported 
+from '@/lib/db/schema' (imported as 
+'verificationTokens').
+
+Import trace for requested module:
+./app/api/dev-wipe/route.ts
+
+   Linting and checking validity of types ...
+
+Failed to compile.
+
+./app/accommodation/AccommodationGrid.ts
+x
+5:8  Warning: 'Image' is defined but 
+never used.  
+@typescript-eslint/no-unused-vars
+6:8  Warning: 'Link' is defined but 
+never used.  
+@typescript-eslint/no-unused-vars
+
+./app/accommodation/page.tsx
+2:18  Warning: 'alumniProfiles' is 
+defined but never used.  
+@typescript-eslint/no-unused-vars
+3:15  Warning: 'eq' is defined but 
+never used.  
+@typescript-eslint/no-unused-vars
+3:19  Warning: 'count' is defined but 
+never used.  
+@typescript-eslint/no-unused-vars
+
+./app/alumni/page.tsx
+3:15  Warning: 'gt' is defined but 
+never used.  
+@typescript-eslint/no-unused-vars
+
+./app/api/auth/forgot-password/route.ts
+31:15  Warning: 'resetTokenHash' is 
+assigned a value but never used.  
+@typescript-eslint/no-unused-vars
+32:15  Warning: 'expiresAt' is assigned 
+a value but never used.  
+@typescript-eslint/no-unused-vars
+
+./app/api/events/[id]/rsvp/route.ts
+16:17  Warning: 'id' is assigned a 
+value but never used.  
+@typescript-eslint/no-unused-vars
+
+./app/api/hotels/public/route.ts
+4:10  Warning: 'eq' is defined but 
+never used.  
+@typescript-eslint/no-unused-vars
+
+./app/api/me/route.ts
+9:27  Warning: 'req' is defined but 
+never used.  
+@typescript-eslint/no-unused-vars
+
+./app/api/memories/route.ts
+8:27  Warning: 'req' is defined but 
+never used.  
+@typescript-eslint/no-unused-vars
+
+./app/api/user/profile/route.ts
+70:50  Warning: '_' is defined but 
+never used.  
+@typescript-eslint/no-unused-vars
+
+./app/claim/[token]/page.tsx
+3:14  Warning: 'and' is defined but 
+never used.  
+@typescript-eslint/no-unused-vars
+3:19  Warning: 'getTableColumns' is 
+defined but never used.  
+@typescript-eslint/no-unused-vars
+
+./app/events/EventsClient.tsx
+263:29  Error: 'minutes' is never 
+reassigned. Use 'const' instead.  
+prefer-const
+
+./app/events/[id]/page.tsx
+118:41  Warning: Using `<img>` could 
+result in slower LCP and higher 
+bandwidth. Consider using `<Image />` 
+from `next/image` to automatically 
+optimize images. This may incur 
+additional usage or cost from your 
+provider. See: https://nextjs.org/docs/m
+essages/no-img-element  
+@next/next/no-img-element
+
+./app/map/WorldMapClient.tsx
+4:10  Warning: 'useState' is defined 
+but never used.  
+@typescript-eslint/no-unused-vars
+
+./app/memories/MemoriesGrid.tsx
+6:8  Warning: 'Link' is defined but 
+never used.  
+@typescript-eslint/no-unused-vars
+
+./app/profile/page.tsx
+33:19  Warning: 'session' is assigned a 
+value but never used.  
+@typescript-eslint/no-unused-vars
+51:8  Warning: React Hook useEffect has 
+a missing dependency: 'router'. Either 
+include it or remove the dependency 
+array.  react-hooks/exhaustive-deps
+196:33  Warning: Using `<img>` could 
+result in slower LCP and higher 
+bandwidth. Consider using `<Image />` 
+from `next/image` to automatically 
+optimize images. This may incur 
+additional usage or cost from your 
+provider. See: https://nextjs.org/docs/m
+essages/no-img-element  
+@next/next/no-img-element
+
+./app/reset-password/page.tsx
+3:20  Warning: 'useEffect' is defined 
+but never used.  
+@typescript-eslint/no-unused-vars
+
+./components/Footer.tsx
+4:8  Warning: 'Link' is defined but 
+never used.  
+@typescript-eslint/no-unused-vars
+
+./lib/actions.ts
+5:10  Warning: 'revalidatePath' is 
+defined but never used.  
+@typescript-eslint/no-unused-vars
+
+./lib/r2.ts
+39:5  Warning: 'prefix' is assigned a 
+value but never used.  
+@typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint 
+rules? Learn more here: https://nextjs.o
+rg/docs/basic-features/eslint#disabling-
+rules
