@@ -7,7 +7,7 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 const r2Client = process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY && process.env.R2_ACCOUNT_ID
     ? new S3Client({
         region: "auto",
-        endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+        endpoint: `${process.env.R2_ACCOUNT_ID}`,
         credentials: {
             accessKeyId: process.env.R2_ACCESS_KEY_ID,
             secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
@@ -69,8 +69,20 @@ export async function uploadToR2(
             // Construct the public URL
             const publicDomain = process.env.R2_PUBLIC_DOMAIN.replace(/\/$/, '');
             return `${publicDomain}/${key}`;
-        } catch (error) {
+        } catch (error: any) {
             console.error("[R2 Upload Error]", error);
+            console.error("[R2 Upload Error - Full Object]");
+            console.dir(error, { depth: null });
+
+            if (error?.$response) {
+                console.error("Raw Response:");
+                console.dir(error.$response, { depth: null });
+
+                if (error.$response?.body) {
+                    console.error("Raw Body:");
+                    console.log(error.$response.body);
+                }
+            }
             // Fallback to placeholder on error so the app stays functional
         }
     }

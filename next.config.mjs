@@ -26,6 +26,10 @@ const nextConfig = async () => {
                     protocol: 'https',
                     hostname: 'placehold.co',
                 },
+                {
+                    protocol: 'https',
+                    hostname: '*.r2.dev',
+                },
             ],
         },
         async redirects() {

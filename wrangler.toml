@@ -11,11 +11,11 @@ database_id = "2588d2b0-eaf2-4b58-9974-2369aaf7efe5"
 migrations_dir = "db/migrations"
 
 
-
-# R2 Bucket binding
-[[r2_buckets]]
-binding = "R2"
-bucket_name = "pdumc-alumni-storage"
+#
+## R2 Bucket binding
+#[[r2_buckets]]
+#binding = "R2"
+#bucket_name = "pdumc-alumni-storage"
 
 # Environment variables
 [vars]

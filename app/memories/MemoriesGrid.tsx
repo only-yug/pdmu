@@ -18,6 +18,7 @@ interface Memory {
     video_url?: string;
     media_type: 'photo' | 'video';
     year?: number;
+    image_date?: string;
     likes: number;
     comments_count: number;
     is_liked: boolean;
@@ -142,11 +143,11 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
 
             {/* Grid */}
             {memories.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
                     {memories.map((memory) => (
-                        <div key={memory.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col h-full border border-gray-100 dark:border-gray-700">
+                        <div key={memory.id} className="break-inside-avoid bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col border border-gray-100 dark:border-gray-700">
                             {/* Media */}
-                            <div className="relative h-64 bg-gray-900">
+                            <div className="relative w-full bg-gray-900 group">
                                 {memory.media_type === 'video' ? (
                                     memory.video_url ? (
                                         <video
@@ -155,10 +156,10 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
                                             muted
                                             loop
                                             playsInline
-                                            className="w-full h-full object-cover"
+                                            className="w-full h-auto object-contain max-h-[80vh]"
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
+                                        <div className="w-full h-64 flex items-center justify-center text-gray-500 text-sm">
                                             No video preview available
                                         </div>
                                     )
@@ -166,12 +167,14 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
                                     <Image
                                         src={memory.photo_url || "/placeholder-memory.jpg"}
                                         alt={memory.title}
-                                        fill
-                                        className="object-cover transition-transform duration-500 hover:scale-105"
+                                        width={800}
+                                        height={800}
+                                        className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+                                        unoptimized
                                     />
                                 )}
                                 {memory.year && (
-                                    <span className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+                                    <span className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded backdrop-blur-sm shadow-md">
                                         {memory.year}
                                     </span>
                                 )}
@@ -193,7 +196,9 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
                                         </div>
                                         <div className="text-sm">
                                             <p className="font-semibold text-gray-900 dark:text-white leading-none">{memory.user_name}</p>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400">Alumni</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                Alumni {memory.image_date && `• ${memory.image_date}`}
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-1 text-gray-400 text-sm">
