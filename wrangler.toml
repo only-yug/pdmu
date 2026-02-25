@@ -12,6 +12,11 @@ migrations_dir = "db/migrations"
 
 
 
+# R2 Bucket binding
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "pdumc-alumni-storage"
+
 # Environment variables
 [vars]
 # NEXTAUTH_URL = "http://localhost:3000"
@@ -20,3 +25,7 @@ migrations_dir = "db/migrations"
 # wrangler secret put NEXTAUTH_SECRET
 # wrangler secret put GOOGLE_CLIENT_ID
 # wrangler secret put GOOGLE_CLIENT_SECRET
+# wrangler secret put R2_ACCESS_KEY_ID
+# wrangler secret put R2_SECRET_ACCESS_KEY
+# wrangler secret put R2_ACCOUNT_ID
+# wrangler secret put R2_PUBLIC_DOMAIN

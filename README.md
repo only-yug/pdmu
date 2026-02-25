@@ -9,7 +9,7 @@ This is a work-in-progress implementation of a full-stack Next.js application fo
 ### ✅ Completed Features
 
 #### Phase 1: Project Setup & Infrastructure
-- ✅ Next.js 15 with TypeScript and App Router
+- ✅ Next.js 14 with TypeScript and App Router
 - ✅ Tailwind CSS for styling
 - ✅ Landing page with hero section and CTAs
 - ✅ Cloudflare Pages configuration template
@@ -26,13 +26,13 @@ This is a work-in-progress implementation of a full-stack Next.js application fo
   - `announcements` - Platform announcements
   - `activity_logs` - Admin monitoring logs
 
-#### Phase 3: Authentication (Partial)
+#### Phase 3: Authentication & Security
 - ✅ NextAuth.js v5 configuration
 - ✅ Login page UI
 - ✅ Registration page UI
 - ✅ Role-based access control setup (Alumni, Admin)
-- ⏳ Email/password authentication API (needs database integration)
-- ⏳ Google OAuth integration (needs credentials)
+- ✅ Password hashing with Web Crypto (bcryptjs fallback)
+- ✅ Google OAuth integration
 
 ### 🔨 In Progress / To Do
 
@@ -54,7 +54,7 @@ This is a work-in-progress implementation of a full-stack Next.js application fo
 - [ ] Alumni directory with search and filters
 - [ ] Individual alumni profile pages
 - [ ] Profile edit functionality
-- [ ] Photo upload to Cloudflare R2
+- ✅ Photo/Video upload to Cloudflare R2
 - [ ] Privacy settings
 
 #### Database Import & Claim System
@@ -85,7 +85,7 @@ This is a work-in-progress implementation of a full-stack Next.js application fo
 ## 🛠️ Technology Stack
 
 ### Core Framework
-- **Next.js 15** - React framework with App Router
+- **Next.js 14** - React framework with App Router
 - **TypeScript** - Type-safe development
 - **Tailwind CSS** - Utility-first CSS framework
 
