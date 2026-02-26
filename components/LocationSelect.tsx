@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { Country, State, City } from "country-state-city";
 
 interface LocationSelectProps {
     country: string;
@@ -30,22 +31,15 @@ export default function LocationSelect({ country, state, city, onChange, editing
 
         if (!editing) return;
 
-        const fetchCountries = async () => {
-            setLoadingCountries(true);
-            try {
-                const res = await fetch("/api/locations/countries");
-                const data = await res.json() as any;
-                if (data.countries) {
-                    setCountries(data.countries);
-                }
-            } catch (err) {
-                console.error("Failed to fetch countries", err);
-            } finally {
-                setLoadingCountries(false);
-            }
-        };
-
-        fetchCountries();
+        setLoadingCountries(true);
+        try {
+            const allCountries = Country.getAllCountries();
+            setCountries(allCountries.map(c => c.name).sort());
+        } catch (err) {
+            console.error("Failed to load countries", err);
+        } finally {
+            setLoadingCountries(false);
+        }
     }, [editing, availableCountries]);
 
     // Fetch States when country changes
@@ -55,26 +49,21 @@ export default function LocationSelect({ country, state, city, onChange, editing
             return;
         }
 
-        const fetchStates = async () => {
-            setLoadingStates(true);
-            try {
-                // We need to pass the country name to get states
-                const res = await fetch(`/api/locations/states?country=${encodeURIComponent(country)}`);
-                const data = await res.json() as any;
-                if (data.states) {
-                    setStates(data.states);
-                } else {
-                    setStates([]);
-                }
-            } catch (err) {
-                console.error("Failed to fetch states", err);
+        setLoadingStates(true);
+        try {
+            const countryObj = Country.getAllCountries().find(c => c.name === country);
+            if (countryObj) {
+                const countryStates = State.getStatesOfCountry(countryObj.isoCode);
+                setStates(countryStates.map(s => s.name).sort());
+            } else {
                 setStates([]);
-            } finally {
-                setLoadingStates(false);
             }
-        };
-
-        fetchStates();
+        } catch (err) {
+            console.error("Failed to load states", err);
+            setStates([]);
+        } finally {
+            setLoadingStates(false);
+        }
     }, [country, editing]);
 
     // Fetch Cities when state changes
@@ -84,25 +73,26 @@ export default function LocationSelect({ country, state, city, onChange, editing
             return;
         }
 
-        const fetchCities = async () => {
-            setLoadingCities(true);
-            try {
-                const res = await fetch(`/api/locations/cities?country=${encodeURIComponent(country)}&state=${encodeURIComponent(state)}`);
-                const data = await res.json() as any;
-                if (data.cities) {
-                    setCities(data.cities);
+        setLoadingCities(true);
+        try {
+            const countryObj = Country.getAllCountries().find(c => c.name === country);
+            if (countryObj) {
+                const stateObj = State.getStatesOfCountry(countryObj.isoCode).find(s => s.name === state);
+                if (stateObj) {
+                    const stateCities = City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode);
+                    setCities(stateCities.map(c => c.name).sort());
                 } else {
                     setCities([]);
                 }
-            } catch (err) {
-                console.error("Failed to fetch cities", err);
+            } else {
                 setCities([]);
-            } finally {
-                setLoadingCities(false);
             }
-        };
-
-        fetchCities();
+        } catch (err) {
+            console.error("Failed to load cities", err);
+            setCities([]);
+        } finally {
+            setLoadingCities(false);
+        }
     }, [country, state, editing]);
 
 

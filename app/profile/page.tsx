@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { Country } from "country-state-city";
 import ImageModal from "@/components/ImageModal";
 import LocationSelect from "@/components/LocationSelect";
 
@@ -63,11 +64,9 @@ export default function ProfilePage() {
 
     async function prefetchCountries() {
         try {
-            const res = await fetch("/api/locations/countries");
-            const data = await res.json() as any;
-            if (data.countries) {
-                setAvailableCountries(data.countries);
-            }
+            const allCountries = Country.getAllCountries();
+            const countryNames = allCountries.map(c => c.name).sort();
+            setAvailableCountries(countryNames);
         } catch (err) {
             console.error("Failed to prefetch countries:", err);
         }
