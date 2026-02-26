@@ -85,7 +85,6 @@ export default function AdminDashboardClient({
             venueName: fd.get("venueName"),
             venueAddress: fd.get("venueAddress"),
             rsvpDeadline: fd.get("rsvpDeadline") || undefined,
-            bannerImageUrl: fd.get("bannerImageUrl") || undefined,
             eventScheduleJson: fd.get("eventScheduleJson") || undefined,
             importantNotesText: fd.get("importantNotesText") || undefined,
         };
@@ -280,7 +279,6 @@ export default function AdminDashboardClient({
                             <FormInput name="venueName" label="Venue Name" required />
                             <FormInput name="venueAddress" label="Venue Address" />
                             <FormInput name="rsvpDeadline" label="RSVP Deadline" type="datetime-local" />
-                            <FormInput name="bannerImageUrl" label="Banner Image URL" />
                             <div>
                                 <label htmlFor="eventScheduleJson" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Event Schedule (JSON string optional)</label>
                                 <textarea name="eventScheduleJson" id="eventScheduleJson" rows={3} className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm"></textarea>

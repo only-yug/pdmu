@@ -21,6 +21,7 @@ async function getMemories() {
             userEmail: users.email,
             alumniName: alumniProfiles.fullName,
             alumniPhoto: alumniProfiles.profilePhotoUrl,
+            userId: users.id,
         })
             .from(memories)
             .leftJoin(users, eq(memories.uploadedBy, users.id))
@@ -54,9 +55,7 @@ async function getMemories() {
                 media_type: (m.uploadVideoUrl ? "video" : "photo") as "photo" | "video",
                 year: m.createdAt ? new Date(m.createdAt).getFullYear() : 2001,
                 image_date: formattedDate,
-                likes: 0,
-                comments_count: 0,
-                is_liked: false
+                uploaded_by: m.userId,
             };
         });
     } catch (e) {

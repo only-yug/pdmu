@@ -22,6 +22,8 @@ interface Alumni {
     country: string | null;
     position: string | null;
     image_url: string | null;
+    latitude: number | null;
+    longitude: number | null;
 }
 
 interface WorldMapClientProps {

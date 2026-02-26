@@ -13,10 +13,13 @@ async function getAlumniLocations() {
             id: alumniProfiles.id,
             fullName: alumniProfiles.fullName,
             city: alumniProfiles.city,
+            state: alumniProfiles.state,
             country: alumniProfiles.country,
             currentDesignation: alumniProfiles.currentDesignation,
             workplace: alumniProfiles.workplace,
             profilePhotoUrl: alumniProfiles.profilePhotoUrl,
+            latitude: alumniProfiles.latitude,
+            longitude: alumniProfiles.longitude,
         })
             .from(alumniProfiles)
             .where(
@@ -32,10 +35,12 @@ async function getAlumniLocations() {
             id: row.id,
             name: row.fullName,
             city: row.city,
-            state: null,
+            state: row.state,
             country: row.country || "Unknown",
             position: row.currentDesignation || row.workplace || "Medical Professional",
             image_url: row.profilePhotoUrl,
+            latitude: row.latitude,
+            longitude: row.longitude,
         }));
     } catch (e) {
         console.error("Failed to fetch alumni for map:", e);

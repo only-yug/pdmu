@@ -1,6 +1,7 @@
 import { getDrizzleDb } from "@/lib/db";
 import { alumniProfiles } from "@/lib/db/schema";
-import { asc, gt } from "drizzle-orm";
+import { asc } from "drizzle-orm";
+import { auth } from "@/auth";
 import AlumniGrid from "./AlumniGrid";
 
 export const runtime = 'edge';
@@ -26,9 +27,10 @@ async function getAlumni() {
                 current_city: a.city,
                 specialization: a.specialization,
                 profile_photo_url: a.profilePhotoUrl,
-                status: 'claimed' as 'unclaimed' | 'claimed' | 'self-registered',
-                // isAttending: based on rsvpAdults being set
-                isAttending: (a.rsvpAdults ?? 0) > 0,
+                cover_photo_url: a.coverPhotoUrl,
+                status: (a.userId ? 'claimed' : 'unclaimed') as 'unclaimed' | 'claimed' | 'self-registered',
+                isAttending: a.isAttending === 'attending',
+                is_attending_status: a.isAttending,
             };
         });
     } catch (e) {
@@ -38,6 +40,8 @@ async function getAlumni() {
 }
 
 export default async function AlumniPage() {
+    const session = await auth();
+    const isLoggedIn = !!session?.user;
     const alumni = await getAlumni();
 
     return (
@@ -68,7 +72,7 @@ export default async function AlumniPage() {
 
             {/* Main Content */}
             <section className="max-w-7xl mx-auto px-4 pb-24 relative z-20">
-                <AlumniGrid initialAlumni={alumni} />
+                <AlumniGrid initialAlumni={alumni} isLoggedIn={isLoggedIn} />
             </section>
         </div>
     );

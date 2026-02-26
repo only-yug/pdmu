@@ -1,4 +1,5 @@
 
+import { auth } from "@/auth";
 import Link from "next/link";
 import { getDatabase } from "@/lib/db";
 export const runtime = 'edge';
@@ -45,6 +46,7 @@ async function getStats() {
 
 export default async function Home() {
     const stats = await getStats();
+    const session = await auth();
 
     return (
         <div className="flex flex-col min-h-screen transition-colors duration-300">
@@ -96,29 +98,32 @@ export default async function Home() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                             </svg>
                         </Link>
-                        <Link
-                            href="/registerProfile"
-                            className="px-8 py-4 bg-teal-800/30 backdrop-blur-md border border-teal-200/30 text-white font-bold rounded-full shadow-lg hover:bg-teal-800/50 transition-all transform hover:-translate-y-1 flex items-center gap-2"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            Register Your Profile
-                        </Link>
+                        {!session && (
+                            <Link
+                                href="/login"
+                                className="px-8 py-4 bg-teal-800/30 backdrop-blur-md border border-teal-200/30 text-white font-bold rounded-full shadow-lg hover:bg-teal-800/50 transition-all transform hover:-translate-y-1 flex items-center gap-2"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Register Your Profile
+                            </Link>
+                        )}
                     </div>
 
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-20">
-                        <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-xl text-center transform hover:scale-105 transition-transform duration-300">
-                            <div className="text-4xl font-extrabold mb-2">{stats.alumniCount}</div>
-                            <div className="text-teal-100 text-sm font-medium uppercase tracking-wider">Medical Professionals</div>
+                        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 shadow-xl text-center transform hover:-translate-y-2 transition-all duration-300">
+                            <div className="text-4xl md:text-5xl font-black mb-3 text-teal-600 dark:text-teal-400">{stats.alumniCount}</div>
+                            <div className="text-teal-600 dark:text-gray-400 font-bold text-sm md:text-base uppercase tracking-widest">Medical Professionals</div>
                         </div>
-                        <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-xl text-center transform hover:scale-105 transition-transform duration-300">
-                            <div className="text-4xl font-extrabold mb-2">{stats.years}</div>
-                            <div className="text-teal-100 text-sm font-medium uppercase tracking-wider">Years of Excellence</div>
+                        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 shadow-xl text-center transform hover:-translate-y-2 transition-all duration-300">
+                            <div className="text-4xl md:text-5xl font-black mb-3 text-teal-600 dark:text-teal-400">{stats.years}</div>
+                            <div className="text-teal-600 dark:text-gray-400 font-bold text-sm md:text-base uppercase tracking-widest">Years of Excellence</div>
                         </div>
-                        <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-xl text-center transform hover:scale-105 transition-transform duration-300">
-                            <div className="text-4xl font-extrabold mb-2">{stats.jubileeYear}</div>
-                            <div className="text-teal-100 text-sm font-medium uppercase tracking-wider">Silver Jubilee</div>
+                        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 shadow-xl text-center transform hover:-translate-y-2 transition-all duration-300">
+                            <div className="text-4xl md:text-5xl font-black mb-3 text-teal-600 dark:text-teal-400">{stats.jubileeYear}</div>
+                            <div className="text-teal-600 dark:text-gray-400 font-bold text-sm md:text-base uppercase tracking-widest">Silver Jubilee</div>
                         </div>
                     </div>
                 </div>

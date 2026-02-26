@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,14 +19,16 @@ interface Memory {
     media_type: 'photo' | 'video';
     year?: number;
     image_date?: string;
-    likes: number;
-    comments_count: number;
-    is_liked: boolean;
+    uploaded_by?: string | null;
 }
 
 export default function MemoriesGrid({ initialMemories }: { initialMemories: Memory[] }) {
     const [memories, setMemories] = useState(initialMemories);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    useEffect(() => {
+        setMemories(initialMemories);
+    }, [initialMemories]);
 
     // Form State
     const [title, setTitle] = useState("");
@@ -34,6 +36,7 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
     const [imageDate, setImageDate] = useState("");
     const [file, setFile] = useState<File | null>(null);
     const [video, setVideo] = useState<File | null>(null);
+    const [uploadType, setUploadType] = useState<'photo' | 'video'>('photo');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
     const router = useRouter();
@@ -42,17 +45,25 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setFile(e.target.files[0]);
+            setVideo(null);
         }
     };
 
     const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setVideo(e.target.files[0]);
+            setFile(null);
         }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!file && !video) {
+            alert("Please upload either a photo or a video.");
+            return;
+        }
+
         setIsSubmitting(true);
 
         const formData = new FormData();
@@ -78,6 +89,7 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
                 setImageDate("");
                 setFile(null);
                 setVideo(null);
+                setUploadType('photo');
             } else {
                 alert("Failed to share memory");
             }
@@ -201,16 +213,9 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-1 text-gray-400 text-sm">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                        </svg>
-                                        0
-                                    </div>
                                 </div>
 
-                                {/* Admin Deletion Control */}
-                                {session?.user?.role === 'admin' && (
+                                {(session?.user?.role === 'admin' || (session?.user && (session.user as any).id === memory.uploaded_by)) && (
                                     <button
                                         onClick={() => handleDelete(memory.id)}
                                         disabled={isDeletingId === memory.id}
@@ -266,7 +271,7 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
                                 </div>
                                 <form onSubmit={handleSubmit} className="space-y-4">
                                     <div>
-                                        <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
+                                        <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title <span className="text-red-500">*</span></label>
                                         <input
                                             type="text"
                                             id="title"
@@ -299,42 +304,61 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
                                         />
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Photo (Optional)</label>
-                                        <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer relative">
-                                            <div className="space-y-1 text-center">
-                                                <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                </svg>
-                                                <div className="flex text-sm text-gray-600 dark:text-gray-400 justify-center">
-                                                    <label htmlFor="file-upload" className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                                                        <span>Click to upload a photo</span>
-                                                        <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
-                                                    </label>
-                                                </div>
-                                                <p className="text-xs text-gray-500 dark:text-gray-500">PNG, JPG, GIF up to 10MB</p>
-                                                {file && <p className="text-xs text-green-600 font-bold mt-2">Selected: {file.name}</p>}
-                                            </div>
-                                        </div>
+                                    <div className="flex gap-4 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg w-fit">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setUploadType('photo'); setVideo(null); }}
+                                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${uploadType === 'photo' ? 'bg-white dark:bg-gray-600 text-blue-600 shadow-sm' : 'text-gray-500'}`}
+                                        >
+                                            Photo
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setUploadType('video'); setFile(null); }}
+                                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${uploadType === 'video' ? 'bg-white dark:bg-gray-600 text-blue-600 shadow-sm' : 'text-gray-500'}`}
+                                        >
+                                            Video
+                                        </button>
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video (Optional)</label>
-                                        <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer relative">
-                                            <div className="space-y-1 text-center">
-                                                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                                </svg>
-                                                <div className="flex text-sm text-gray-600 dark:text-gray-400 justify-center">
-                                                    <label htmlFor="video-upload" className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                                                        <span>Click to upload a video</span>
-                                                        <input id="video-upload" name="video-upload" type="file" className="sr-only" onChange={handleVideoChange} accept="video/*" />
-                                                    </label>
+                                    {uploadType === 'photo' ? (
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Photo <span className="text-red-500">*</span></label>
+                                            <label htmlFor="file-upload" className="flex justify-center w-full px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer relative block">
+                                                <div className="space-y-1 text-center w-full">
+                                                    <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                    <div className="flex text-sm text-gray-600 dark:text-gray-400 justify-center">
+                                                        <span className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                                            <span>Click to upload a photo</span>
+                                                            <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                                                    {file && <p className="text-xs text-green-600 font-bold mt-2">Selected: {file.name}</p>}
                                                 </div>
-                                                {video && <p className="text-xs text-green-600 font-bold mt-2">Selected: {video.name}</p>}
-                                            </div>
+                                            </label>
                                         </div>
-                                    </div>
+                                    ) : (
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video <span className="text-red-500">*</span></label>
+                                            <label htmlFor="video-upload" className="flex justify-center w-full px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer relative block">
+                                                <div className="space-y-1 text-center w-full">
+                                                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                    <div className="flex text-sm text-gray-600 dark:text-gray-400 justify-center">
+                                                        <span className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                                            <span>Click to upload a video</span>
+                                                            <input id="video-upload" name="video-upload" type="file" className="sr-only" onChange={handleVideoChange} accept="video/*" />
+                                                        </span>
+                                                    </div>
+                                                    {video && <p className="text-xs text-green-600 font-bold mt-2">Selected: {video.name}</p>}
+                                                </div>
+                                            </label>
+                                        </div>
+                                    )}
 
                                     <div className="mt-5 sm:mt-6 flex gap-3">
                                         <button

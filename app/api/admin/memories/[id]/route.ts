@@ -14,16 +14,24 @@ export async function DELETE(
     try {
         const session = await auth();
 
-        // Security Authentication & Authorization block
-        if (!session?.user || session.user.role !== 'admin') {
-            return NextResponse.json({ error: "Unauthorized. Admin privileges required." }, { status: 403 });
-        }
-
         const db = getDrizzleDb();
         const memoryId = params.id;
 
         if (!memoryId) {
             return NextResponse.json({ error: "Memory ID required" }, { status: 400 });
+        }
+
+        const memory = await db.select().from(memories).where(eq(memories.id, memoryId)).get();
+
+        if (!memory) {
+            return NextResponse.json({ error: "Memory not found" }, { status: 404 });
+        }
+
+        const isOwner = session?.user && (session.user as any).id === memory.uploadedBy;
+        const isAdmin = session?.user?.role === 'admin';
+
+        if (!isAdmin && !isOwner) {
+            return NextResponse.json({ error: "Unauthorized. You can only delete your own memories." }, { status: 403 });
         }
 
         // Execute hard delete

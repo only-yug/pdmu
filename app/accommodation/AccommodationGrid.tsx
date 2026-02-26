@@ -1,9 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
@@ -18,6 +16,10 @@ interface Hotel {
 export default function AccommodationGrid({ initialHotels }: { initialHotels: Hotel[] }) {
     const [hotels, setHotels] = useState(initialHotels);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    useEffect(() => {
+        setHotels(initialHotels);
+    }, [initialHotels]);
 
     // Form State
     const [hotelName, setHotelName] = useState("");
@@ -184,11 +186,6 @@ export default function AccommodationGrid({ initialHotels }: { initialHotels: Ho
                 <div>
                     <h3 className="text-lg font-bold mb-1">Need Help with Booking?</h3>
                     <p className="text-blue-100 text-sm">For assistance, please contact the reunion organizing committee.</p>
-                </div>
-                <div className="md:ml-auto">
-                    <button className="bg-blue-800/50 hover:bg-blue-800 text-white px-5 py-2.5 rounded-lg font-medium transition-colors text-sm border border-blue-700">
-                        Contact Committee
-                    </button>
                 </div>
             </div>
 

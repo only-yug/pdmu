@@ -36,6 +36,7 @@ export const profileUpdateSchema = z.object({
     instagramHandle: z.string().nullable().optional(),
     facebookUrl: z.string().url().or(z.literal("")).nullable().optional(),
     profilePhotoUrl: z.string().nullable().optional(),
+    coverPhotoUrl: z.string().nullable().optional(),
     rsvpAdults: z.number().int().min(0).nullable().optional(),
     rsvpKids: z.number().int().min(0).nullable().optional(),
     hotelSelectionId: z.string().nullable().optional(),

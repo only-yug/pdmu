@@ -3,12 +3,15 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import ImageModal from "@/components/ImageModal";
+import LocationSelect from "@/components/LocationSelect";
 
 interface Profile {
     id: string;
     fullName: string;
     rollNumber: number | null;
     profilePhotoUrl: string | null;
+    coverPhotoUrl: string | null;
     bioJourney: string | null;
     favoriteMemories: string | null;
     specialization: string | null;
@@ -26,6 +29,7 @@ interface Profile {
     isAttending: string | null;
     rsvpAdults: number;
     rsvpKids: number;
+    hotelSelectionId: string | null;
     specialReqs: string | null;
 }
 
@@ -36,9 +40,14 @@ export default function ProfilePage() {
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState({ photo: false, cover: false });
+    const [previews, setPreviews] = useState({ photo: null as string | null, cover: null as string | null });
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
     const [formData, setFormData] = useState<Partial<Profile>>({});
+    const [hotels, setHotels] = useState<{ id: string; name: string }[]>([]);
     const [errors, setErrors] = useState<Record<string, string[]>>({});
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [availableCountries, setAvailableCountries] = useState<string[]>([]);
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -47,8 +56,34 @@ export default function ProfilePage() {
         }
         if (status === "authenticated") {
             fetchProfile();
+            prefetchCountries();
+            fetchHotels();
         }
     }, [status]);
+
+    async function prefetchCountries() {
+        try {
+            const res = await fetch("/api/locations/countries");
+            const data = await res.json() as any;
+            if (data.countries) {
+                setAvailableCountries(data.countries);
+            }
+        } catch (err) {
+            console.error("Failed to prefetch countries:", err);
+        }
+    }
+
+    async function fetchHotels() {
+        try {
+            const res = await fetch("/api/hotels/public");
+            const data = await res.json() as Record<string, any>;
+            if (res.ok && data.data) {
+                setHotels(data.data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch hotels:", err);
+        }
+    }
 
     async function fetchProfile() {
         try {
@@ -71,9 +106,17 @@ export default function ProfilePage() {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
+    const handleLocationChange = (name: string, value: string) => {
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+
+        const localUrl = URL.createObjectURL(file);
+        setPreviews(prev => ({ ...prev, photo: localUrl }));
+        setIsUploading(prev => ({ ...prev, photo: true }));
 
         const uploadData = new FormData();
         uploadData.append("file", file);
@@ -86,6 +129,34 @@ export default function ProfilePage() {
             }
         } catch (err) {
             console.error("Upload failed:", err);
+            setPreviews(prev => ({ ...prev, photo: null }));
+        } finally {
+            setIsUploading(prev => ({ ...prev, photo: false }));
+        }
+    };
+
+    const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const localUrl = URL.createObjectURL(file);
+        setPreviews(prev => ({ ...prev, cover: localUrl }));
+        setIsUploading(prev => ({ ...prev, cover: true }));
+
+        const uploadData = new FormData();
+        uploadData.append("file", file);
+
+        try {
+            const res = await fetch("/api/upload", { method: "POST", body: uploadData });
+            const data = await res.json() as Record<string, any>;
+            if (data.success) {
+                setFormData((prev) => ({ ...prev, coverPhotoUrl: data.url }));
+            }
+        } catch (err) {
+            console.error("Cover upload failed:", err);
+            setPreviews(prev => ({ ...prev, cover: null }));
+        } finally {
+            setIsUploading(prev => ({ ...prev, cover: false }));
         }
     };
 
@@ -106,6 +177,7 @@ export default function ProfilePage() {
             if (res.ok) {
                 setMessage({ type: "success", text: "Profile updated successfully!" });
                 setProfile({ ...profile, ...formData } as Profile);
+                window.dispatchEvent(new Event("profileUpdated"));
                 setIsEditing(false);
             } else {
                 if (data.details?.fieldErrors) {
@@ -188,33 +260,90 @@ export default function ProfilePage() {
 
             {/* Profile Card */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-                {/* Photo + Name Banner */}
-                <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-6">
-                    <div className="flex items-center gap-6">
-                        <div className="relative">
-                            {formData.profilePhotoUrl ? (
-                                <img src={formData.profilePhotoUrl} alt="Profile" className="w-20 h-20 rounded-full object-cover border-4 border-white/30" />
+                <div className="relative group/cover">
+                    <div
+                        className={`h-48 md:h-64 w-full relative cursor-pointer ${!(previews.cover || formData.coverPhotoUrl) ? 'bg-gradient-to-r from-blue-600 to-indigo-700' : ''}`}
+                        onClick={() => (previews.cover || formData.coverPhotoUrl) && setSelectedImage(previews.cover || formData.coverPhotoUrl || null)}
+                    >
+                        {(previews.cover || formData.coverPhotoUrl) && (
+                            <img src={previews.cover || formData.coverPhotoUrl || ""} alt="Cover" className={`w-full h-full object-cover transition-opacity duration-300 ${isUploading.cover ? 'opacity-50' : 'opacity-100'}`} />
+                        )}
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/cover:opacity-100 transition-opacity flex items-center justify-center">
+                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                            </svg>
+                        </div>
+                        {isUploading.cover && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                            </div>
+                        )}
+                        {isEditing && (
+                            <label className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer backdrop-blur-md transition-all flex items-center gap-2 border border-white/30 z-20">
+                                <input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" />
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                {isUploading.cover ? "Uploading..." : "Change Cover Photo"}
+                            </label>
+                        )}
+                    </div>
+
+                    <div className="absolute -bottom-12 left-8 md:left-12 z-20">
+                        <div
+                            className="relative inline-block cursor-pointer group/photo"
+                            onClick={() => (previews.photo || formData.profilePhotoUrl) && setSelectedImage(previews.photo || formData.profilePhotoUrl || null)}
+                        >
+                            {previews.photo || formData.profilePhotoUrl ? (
+                                <div className="relative w-32 h-32 md:w-40 md:h-40">
+                                    <img
+                                        src={previews.photo || formData.profilePhotoUrl || ""}
+                                        alt="Profile"
+                                        className={`w-full h-full rounded-full border-4 border-white dark:border-gray-900 shadow-2xl object-cover transition-all group-hover/photo:brightness-90 ${isUploading.photo ? 'opacity-50' : 'opacity-100'}`}
+                                    />
+                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity">
+                                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                        </svg>
+                                    </div>
+                                    {isUploading.photo && (
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                                        </div>
+                                    )}
+                                </div>
                             ) : (
-                                <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-white text-2xl font-bold">
+                                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-indigo-100 dark:bg-gray-800 flex items-center justify-center text-indigo-600 dark:text-gray-400 text-5xl font-bold border-4 border-white dark:border-gray-900 shadow-xl">
                                     {profile.fullName?.charAt(0) || "?"}
                                 </div>
                             )}
                             {isEditing && (
-                                <label className="absolute bottom-0 right-0 bg-white dark:bg-gray-800 rounded-full p-1 cursor-pointer shadow-lg">
+                                <label className="absolute bottom-2 right-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-2.5 cursor-pointer shadow-xl border-4 border-white dark:border-gray-900 z-30">
                                     <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-                                    <svg className="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
                                 </label>
                             )}
                         </div>
-                        <div>
-                            <h2 className="text-2xl font-bold text-white">{profile.fullName}</h2>
-                            <p className="text-indigo-100 text-sm">{profile.email}</p>
-                            {profile.rollNumber && <p className="text-indigo-200 text-xs mt-1">Roll No: {profile.rollNumber}</p>}
-                        </div>
                     </div>
+                </div>
+
+                <div className="pt-16 pb-8 px-8 md:px-12 border-b border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80">
+                    <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight mb-1">{profile.fullName}</h2>
+                    <p className="text-gray-500 dark:text-gray-400 font-medium flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        {profile.email}
+                    </p>
+                    {profile.rollNumber && (
+                        <div className="mt-3 inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                            Roll No: {profile.rollNumber}
+                        </div>
+                    )}
                 </div>
 
                 {/* Form Sections */}
@@ -229,9 +358,15 @@ export default function ProfilePage() {
 
                     {/* Location */}
                     <Section title="Location">
-                        <Field label="Country" name="country" value={formData.country || ""} onChange={handleChange} editing={isEditing} error={errors.country?.[0]} />
-                        <Field label="State" name="state" value={formData.state || ""} onChange={handleChange} editing={isEditing} error={errors.state?.[0]} />
-                        <Field label="City" name="city" value={formData.city || ""} onChange={handleChange} editing={isEditing} error={errors.city?.[0]} />
+                        <LocationSelect
+                            country={formData.country || ""}
+                            state={formData.state || ""}
+                            city={formData.city || ""}
+                            onChange={handleLocationChange}
+                            editing={isEditing}
+                            availableCountries={availableCountries}
+                            error={errors.country?.[0] || errors.state?.[0] || errors.city?.[0]}
+                        />
                     </Section>
 
                     {/* Contact */}
@@ -252,7 +387,11 @@ export default function ProfilePage() {
                                     <button
                                         key={opt}
                                         type="button"
-                                        onClick={() => setFormData(prev => ({ ...prev, isAttending: opt }))}
+                                        onClick={() => setFormData(prev => ({
+                                            ...prev,
+                                            isAttending: opt,
+                                            hotelSelectionId: opt === 'attending' ? prev.hotelSelectionId : null
+                                        }))}
                                         className={`py-2 px-3 rounded-lg border text-sm font-medium transition-all ${formData.isAttending === opt
                                             ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
                                             : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"}`}
@@ -267,7 +406,32 @@ export default function ProfilePage() {
                         {formData.isAttending === 'attending' && (
                             <>
                                 <Field label="Adults (Including yourself)" name="rsvpAdults" value={String(formData.rsvpAdults || 0)} onChange={(e) => setFormData(p => ({ ...p, rsvpAdults: parseInt(e.target.value) || 0 }))} editing={isEditing} type="number" error={errors.rsvpAdults?.[0]} />
-                                <Field label="Kids" name="rsvpKids" value={String(formData.rsvpKids || 0)} onChange={(e) => setFormData(p => ({ ...p, rsvpKids: parseInt(e.target.value) || 0 }))} editing={isEditing} type="number" error={errors.rsvpKids?.[0]} />
+                                <Field label="Kids (Under 18)" name="rsvpKids" value={String(formData.rsvpKids || 0)} onChange={(e) => setFormData(p => ({ ...p, rsvpKids: parseInt(e.target.value) || 0 }))} editing={isEditing} type="number" error={errors.rsvpKids?.[0]} />
+
+                                {isEditing ? (
+                                    <div className="md:col-span-2">
+                                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Select Hotel</label>
+                                        <select
+                                            name="hotelSelectionId"
+                                            value={formData.hotelSelectionId || ""}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, hotelSelectionId: e.target.value || null }))}
+                                            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:border-transparent transition-all"
+                                        >
+                                            <option value="">-- Select or No Hotel Selection --</option>
+                                            {hotels.map(h => (
+                                                <option key={h.id} value={h.id}>{h.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                ) : (
+                                    <div className="md:col-span-2">
+                                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Staying At</span>
+                                        <p className="mt-1 text-gray-900 dark:text-white font-semibold flex items-center gap-2">
+                                            {hotels.find(h => h.id === formData.hotelSelectionId)?.name || "Not selected"}
+                                            {formData.hotelSelectionId && <span className="text-[10px] bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-0.5 rounded-full">Booked Selection</span>}
+                                        </p>
+                                    </div>
+                                )}
                             </>
                         )}
                     </Section>
@@ -279,6 +443,12 @@ export default function ProfilePage() {
                     </Section>
                 </div>
             </div>
+
+            <ImageModal
+                src={selectedImage || ""}
+                isOpen={!!selectedImage}
+                onClose={() => setSelectedImage(null)}
+            />
         </div>
     );
 }

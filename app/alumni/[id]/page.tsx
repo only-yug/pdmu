@@ -5,6 +5,7 @@ import { alumniProfiles } from "@/lib/db/schema";
 import Link from "next/link";
 import Image from "next/image";
 import { auth } from "@/auth";
+import ClientImagePreview from "@/components/ClientImagePreview";
 
 export const runtime = 'edge';
 
@@ -70,21 +71,27 @@ export default async function AlumniProfilePage({ params }: { params: { id: stri
 
                 <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-800">
                     {/* Header Banner */}
-                    <div className="h-48 bg-gradient-to-r from-blue-600 to-indigo-700 dark:from-blue-800 dark:to-indigo-900 relative">
-                        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
+                    <div className={`h-48 relative overflow-hidden ${!profile.coverPhotoUrl ? 'bg-gradient-to-r from-blue-600 to-indigo-700 dark:from-blue-800 dark:to-indigo-900' : ''}`}>
+                        {profile.coverPhotoUrl && (
+                            <ClientImagePreview
+                                src={profile.coverPhotoUrl}
+                                alt="Cover"
+                                className="w-full h-full"
+                            />
+                        )}
+                        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20 pointer-events-none" />
                     </div>
 
                     <div className="px-8 pb-8">
                         {/* Profile Info Header */}
                         <div className="relative flex justify-between items-end -mt-20 z-10 sm:flex-row flex-col sm:items-end items-center text-center sm:text-left">
                             <div className="flex flex-col sm:flex-row items-center gap-6">
-                                <div className="w-40 h-40 rounded-full border-4 border-white dark:border-gray-900 shadow-2xl bg-gray-100 dark:bg-gray-800 overflow-hidden flex-shrink-0 flex items-center justify-center relative">
+                                <div className="w-40 h-40 rounded-full border-4 border-white dark:border-gray-900 shadow-2xl bg-gray-100 dark:bg-gray-800 overflow-hidden flex-shrink-0 flex items-center justify-center relative z-10">
                                     {profile.profilePhotoUrl ? (
-                                        <Image
+                                        <ClientImagePreview
                                             src={profile.profilePhotoUrl}
                                             alt={profile.fullName}
-                                            fill
-                                            className="object-cover"
+                                            className="w-full h-full"
                                         />
                                     ) : (
                                         <span className="text-4xl text-gray-400 capitalize">

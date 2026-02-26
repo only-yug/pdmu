@@ -30,6 +30,7 @@ export const alumniProfiles = sqliteTable("alumni_profiles", {
     rollNumber: integer("roll_number"),   // integer as per diagram (NN)
     fullName: text("full_name").notNull(),
     profilePhotoUrl: text("profile_photo_url"),
+    coverPhotoUrl: text("cover_photo_url"),
 
     bioJourney: text("bio_journey"),
     favoriteMemories: text("favorite_memories"),
@@ -40,6 +41,8 @@ export const alumniProfiles = sqliteTable("alumni_profiles", {
     country: text("country"),
     state: text("state"),
     city: text("city"),
+    latitude: integer("latitude", { mode: "number" }),
+    longitude: integer("longitude", { mode: "number" }),
 
     email: text("email").notNull().unique(),
     phoneNumber: text("phone_number"),

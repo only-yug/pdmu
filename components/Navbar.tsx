@@ -13,6 +13,7 @@ export default function Navbar() {
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const pathname = usePathname();
     const { data: session } = useSession();
+    const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
     const userMenuRef = useRef<HTMLDivElement>(null);
 
     // Close user menu when clicking outside
@@ -25,6 +26,25 @@ export default function Navbar() {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    const fetchProfilePhoto = async () => {
+        if (!session) return;
+        try {
+            const res = await fetch("/api/user/profile");
+            const data = await res.json() as Record<string, any>;
+            if (res.ok && data.profile?.profilePhotoUrl) {
+                setProfilePhoto(data.profile.profilePhotoUrl);
+            }
+        } catch (err) {
+            console.error("Navbar profile fetch error:", err);
+        }
+    };
+
+    useEffect(() => {
+        fetchProfilePhoto();
+        window.addEventListener("profileUpdated", fetchProfilePhoto);
+        return () => window.removeEventListener("profileUpdated", fetchProfilePhoto);
+    }, [session]);
 
     const getInitials = (name?: string | null) => {
         if (!name) return "U";
@@ -94,8 +114,12 @@ export default function Navbar() {
                                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                                     className="flex items-center gap-2 bg-blue-50/50 hover:bg-blue-50 dark:bg-gray-800/50 dark:hover:bg-gray-800 px-3 py-1.5 rounded-full transition-all border border-transparent hover:border-blue-100 dark:hover:border-gray-700"
                                 >
-                                    <div className="bg-blue-600 text-white rounded-full h-8 w-8 flex items-center justify-center text-xs font-bold shadow-sm">
-                                        {getInitials(session.user?.name)}
+                                    <div className="bg-blue-600 text-white rounded-full h-8 w-8 flex items-center justify-center overflow-hidden shadow-sm">
+                                        {profilePhoto ? (
+                                            <img src={profilePhoto} alt="User" className="h-full w-full object-cover" />
+                                        ) : (
+                                            <span className="text-[10px] font-bold">{getInitials(session.user?.name)}</span>
+                                        )}
                                     </div>
                                     <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                                         {session.user?.name}
@@ -176,8 +200,12 @@ export default function Navbar() {
                         {session ? (
                             <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
                                 <div className="flex items-center px-3 mb-3">
-                                    <div className="bg-blue-600 text-white rounded-full h-10 w-10 flex items-center justify-center text-sm font-bold shadow-sm mr-3">
-                                        {getInitials(session.user?.name)}
+                                    <div className="bg-blue-600 text-white rounded-full h-10 w-10 flex items-center justify-center overflow-hidden shadow-sm mr-3">
+                                        {profilePhoto ? (
+                                            <img src={profilePhoto} alt="User" className="h-full w-full object-cover" />
+                                        ) : (
+                                            <span className="text-xs font-bold">{getInitials(session.user?.name)}</span>
+                                        )}
                                     </div>
                                     <div>
                                         <div className="text-base font-bold text-gray-800 dark:text-white">{session.user?.name}</div>

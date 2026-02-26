@@ -1,42 +1,44 @@
 import { getDrizzleDb } from "@/lib/db";
-import { events } from "@/lib/db/schema";
-import { asc } from "drizzle-orm";
+import { events, eventAttendees } from "@/lib/db/schema";
+import { asc, eq, sql } from "drizzle-orm";
 import EventsClient from "./EventsClient";
 export const runtime = 'edge';
 
 async function getEvents() {
     try {
         const db = getDrizzleDb();
-        const result = await db.select({
-            id: events.id,
-            title: events.title,
-            description: events.description,
-            eventStartDate: events.eventStartDate,
-            venueName: events.venueName,
-            bannerImageUrl: events.bannerImageUrl,
-            venueAddress: events.venueAddress,
-            rsvpDeadline: events.rsvpDeadline,
-            totalBatchmatesCount: events.totalBatchmatesCount,
-            totalAttendeesCount: events.totalAttendeesCount,
-        })
-            .from(events)
-            .orderBy(asc(events.eventStartDate));
 
-        return result.map(e => ({
-            id: e.id,
-            title: e.title,
-            description: e.description,
-            event_date: e.eventStartDate,
-            venue: e.venueName,
-            venueAddress: e.venueAddress,
-            banner_image_url: e.bannerImageUrl,
-            start_time: e.eventStartDate ? new Date(e.eventStartDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-            rsvpDeadline: e.rsvpDeadline,
-            totalBatchmatesCount: e.totalBatchmatesCount || 0,
-            totalAttendeesCount: e.totalAttendeesCount || 0,
+        const allEvents = await db.select().from(events).orderBy(asc(events.eventStartDate)).all();
+
+        const eventsWithCounts = await Promise.all(allEvents.map(async (event) => {
+            const attendeeRecords = await db
+                .select({
+                    count: sql<number>`count(*)`
+                })
+                .from(eventAttendees)
+                .where(eq(eventAttendees.eventId, event.id))
+                .get();
+
+            const batchCount = attendeeRecords?.count || 0;
+
+            return {
+                id: event.id,
+                title: event.title,
+                description: event.description,
+                event_date: event.eventStartDate,
+                venue: event.venueName,
+                venueAddress: event.venueAddress,
+                banner_image_url: event.bannerImageUrl,
+                start_time: event.eventStartDate ? new Date(event.eventStartDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+                rsvpDeadline: event.rsvpDeadline,
+                totalBatchmatesCount: batchCount,
+                totalAttendeesCount: batchCount, // Currently same as batchmates unless guests are added
+            };
         }));
+
+        return eventsWithCounts;
     } catch (e) {
-        console.error(e);
+        console.error("Error fetching events with counts:", e);
         return [];
     }
 }

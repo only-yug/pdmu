@@ -1,6 +1,6 @@
 import { getDrizzleDb } from "@/lib/db";
 import { hotels, alumniProfiles } from "@/lib/db/schema";
-import { asc, eq, count, sql } from "drizzle-orm";
+import { asc, count, sql } from "drizzle-orm";
 import AccommodationGrid from "./AccommodationGrid";
 
 export const runtime = 'edge';
@@ -9,15 +9,16 @@ async function getHotels() {
     try {
         const db = getDrizzleDb();
 
-        // Get hotels with guest count via subquery
         const results = await db.select({
             id: hotels.id,
             name: hotels.hotelName,
             description: hotels.description,
             websiteUrl: hotels.websiteUrl,
-            guestCount: sql<number>`(SELECT COUNT(*) FROM alumni_profiles WHERE alumni_profiles.hotel_selection_id = ${hotels.id})`,
+            guestCount: count(alumniProfiles.id),
         })
             .from(hotels)
+            .leftJoin(alumniProfiles, sql`${hotels.id} = ${alumniProfiles.hotelSelectionId} AND ${alumniProfiles.isAttending} = 'attending'`)
+            .groupBy(hotels.id, hotels.hotelName, hotels.description, hotels.websiteUrl, hotels.createdAt)
             .orderBy(asc(hotels.createdAt))
             .all();
 

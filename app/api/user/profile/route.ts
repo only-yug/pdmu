@@ -65,16 +65,41 @@ export async function PUT(req: Request) {
             );
         }
 
-        // Filter undefined values
-        const updateData = Object.fromEntries(
+        const database = getDrizzleDb();
+
+        const updateData: any = Object.fromEntries(
             Object.entries(result.data).filter(([_, v]) => v !== undefined)
         );
+
+        // --- GEOCODING LOGIC ---
+        // If city or country is updated, we fetch coordinates to store them permanently
+        if (result.data.city || result.data.country) {
+            try {
+                // Construct search query
+                const city = result.data.city || "";
+                const country = result.data.country || "";
+                const q = [city, country].filter(Boolean).join(", ");
+
+                if (q) {
+                    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`, {
+                        headers: { "User-Agent": "Antigravity-Alumni-App" }
+                    });
+                    const geoData = await geoRes.json() as any[];
+
+                    if (geoData && geoData.length > 0) {
+                        updateData.latitude = parseFloat(geoData[0].lat);
+                        updateData.longitude = parseFloat(geoData[0].lon);
+                        console.log(`✅ Geocoded ${q} to ${updateData.latitude}, ${updateData.longitude}`);
+                    }
+                }
+            } catch (err) {
+                console.error("Geocoding failed during profile update:", err);
+            }
+        }
 
         if (Object.keys(updateData).length === 0) {
             return NextResponse.json({ message: "No changes detected" });
         }
-
-        const database = getDrizzleDb();
 
         await database.update(alumniProfiles)
             .set({ ...updateData, updatedAt: new Date() })
