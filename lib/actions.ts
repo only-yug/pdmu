@@ -7,6 +7,7 @@ import { getDrizzleDb } from "@/lib/db";
 import { alumniProfiles, users } from "@/lib/db/schema";
 import { eq, like, and, isNull } from "drizzle-orm";
 import { redirect } from 'next/navigation';
+import { hashPassword } from '@/lib/crypto';
 
 export async function authenticate(
     prevState: string | undefined,
@@ -55,20 +56,35 @@ export async function signup(
             return 'Email and password are required.';
         }
 
-        const response = await fetch(`${process.env.NEXTAUTH_URL || ''}/api/auth/register`, {
-            method: 'POST',
-            body: JSON.stringify({
-                email,
-                password,
-                fullName: fullName || email.split('@')[0]
-            }),
-            headers: { 'Content-Type': 'application/json' }
-        });
+        const fullNameStr = fullName || email.split('@')[0];
+        const db = getDrizzleDb();
 
-        const result = await response.json() as any;
+        const existingUser = await db.select().from(users).where(eq(users.email, email)).get();
+        if (existingUser) {
+            return 'User with this email already exists.';
+        }
 
-        if (!response.ok) {
-            return result.message || 'Registration failed.';
+        const existingProfile = await db.select().from(alumniProfiles).where(eq(alumniProfiles.email, email)).get();
+        if (existingProfile) {
+            if (!existingProfile.userId) {
+                return 'An unclaimed profile exists for this email. Please contact Admin for a claim link.';
+            } else {
+                return 'User already registered. Please login.';
+            }
+        }
+
+        const hashedPassword = await hashPassword(password);
+
+        const userResult = await db.insert(users).values({
+            id: crypto.randomUUID(),
+            email,
+            passwordHash: hashedPassword,
+            fullName: fullNameStr,
+            role: 'user',
+        }).returning({ id: users.id }).get();
+
+        if (!userResult) {
+            return 'Failed to create user.';
         }
 
         // Auto-login removed as requested. Redirect to login page instead.

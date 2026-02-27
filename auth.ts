@@ -41,12 +41,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (parsedCredentials.success) {
           const { email, password } = parsedCredentials.data;
+          console.log('[Auth Debug] Authorize called for email:', email);
+
           const user = await getUserByEmail(email);
 
-          if (!user) return null;
+          if (!user) {
+            console.log('[Auth Debug] User not found for email:', email);
+            return null;
+          }
+
+          console.log('[Auth Debug] User found:', user.email, 'Role:', user.role);
 
           // Verify password using Web Crypto
           const passwordsMatch = await verifyPassword(password, user.passwordHash || "");
+
+          console.log('[Auth Debug] Password match result:', passwordsMatch);
 
           if (passwordsMatch) {
             // Fetch alumni profile to see if this user is a batchmate
