@@ -68,7 +68,7 @@ export async function PUT(req: Request) {
         const database = getDrizzleDb();
 
         const updateData: any = Object.fromEntries(
-            Object.entries(result.data).filter(([_, v]) => v !== undefined)
+            Object.entries(result.data).filter(([__, v]) => v !== undefined)
         );
 
         // --- GEOCODING LOGIC ---

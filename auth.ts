@@ -100,13 +100,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               id: currentUserId,
               email: user.email,
               passwordHash: '', // Google users don't have passwords
-              role: 'alumni', // Standard role
+              fullName: user.name,
+              role: profile ? 'alumni' : 'user',
             }).run();
           }
 
           // 3. Link the session variables
           user.id = currentUserId!;
-          (user as any).role = existingUser?.role || 'alumni';
+          (user as any).role = existingUser?.role || (profile ? 'alumni' : 'user');
 
           // 4. If they are a whitelisted batchmate, link their profile
           if (profile) {

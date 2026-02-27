@@ -13,7 +13,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { id } = params;  // eventId — kept for future use when eventRegistrations is re-added
+        const { id: _id } = params;  // eventId — kept for future use when eventRegistrations is re-added
         const body = await req.json() as Record<string, any>;
         const { adults, kids, hotelId, specialReqs } = body;
 

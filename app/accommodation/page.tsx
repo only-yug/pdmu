@@ -22,7 +22,7 @@ async function getHotels() {
             .orderBy(asc(hotels.createdAt))
             .all();
 
-        return results.map(h => ({
+        return results.map((h: any) => ({
             id: h.id,
             name: h.name,
             description: h.description,

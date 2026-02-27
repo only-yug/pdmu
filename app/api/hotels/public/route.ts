@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDrizzleDb } from "@/lib/db";
 import { hotels } from "@/lib/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { asc } from "drizzle-orm";
 
 export const runtime = 'edge';
 

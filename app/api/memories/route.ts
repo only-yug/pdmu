@@ -5,7 +5,7 @@ import { desc } from "drizzle-orm";
 
 export const runtime = 'edge';
 
-export async function GET(req: Request) {
+export async function GET(_req: Request) {
     try {
         const database = getDrizzleDb();
 

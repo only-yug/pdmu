@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 
 export const runtime = 'edge';
 
-export async function GET(req: Request) {
+export async function GET(_req: Request) {
     const session = await auth();
     if (!session || !session.user) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

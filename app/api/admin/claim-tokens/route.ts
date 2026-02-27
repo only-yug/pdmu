@@ -26,7 +26,7 @@ export async function POST(req: Request) {
         // Check alumni exists and is unclaimed
         const profile = await db.select()
             .from(alumniProfiles)
-            .where(eq(alumniProfiles.id, alumniId))
+            .where(eq(alumniProfiles.id, Number(alumniId)))
             .get();
 
         if (!profile) {

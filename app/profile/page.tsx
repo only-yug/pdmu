@@ -35,7 +35,7 @@ interface Profile {
 }
 
 export default function ProfilePage() {
-    const { data: session, status } = useSession();
+    const { status } = useSession();
     const router = useRouter();
     const [profile, setProfile] = useState<Profile | null>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -60,7 +60,7 @@ export default function ProfilePage() {
             prefetchCountries();
             fetchHotels();
         }
-    }, [status]);
+    }, [status, router]);
 
     async function prefetchCountries() {
         try {
@@ -204,12 +204,20 @@ export default function ProfilePage() {
     if (!profile) {
         return (
             <div className="min-h-[70vh] flex items-center justify-center px-4">
-                <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 p-8 text-center max-w-md">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Profile Found</h2>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        You need to claim or register your alumni profile first.
+                <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl border border-gray-100 dark:border-gray-800 p-12 text-center max-w-lg animate-fade-in">
+                    <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg className="w-10 h-10 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                    <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">No Profile Found</h2>
+                    <p className="text-gray-500 dark:text-gray-400 text-lg mb-8 leading-relaxed">
+                        You need to claim or register your alumni profile <br className="hidden sm:block" /> first to continue.
                     </p>
-                    <a href="/registerProfile" className="inline-block px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                    <a
+                        href="/RegisterProfile"
+                        className="inline-flex items-center justify-center px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-500/25 active:scale-95 text-lg"
+                    >
                         Register Profile
                     </a>
                 </div>
@@ -220,29 +228,29 @@ export default function ProfilePage() {
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Profile</h1>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+                <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">My Profile</h1>
                 {!isEditing ? (
                     <button
                         onClick={() => setIsEditing(true)}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                        className="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all font-bold shadow-md active:scale-95"
                     >
                         Edit Profile
                     </button>
                 ) : (
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => { setIsEditing(false); setFormData(profile); setMessage(null); setErrors({}); }}
-                            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
-                        >
-                            Cancel
-                        </button>
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <button
                             onClick={handleSave}
                             disabled={isSaving}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
+                            className="w-full sm:w-auto px-6 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all font-bold shadow-md active:scale-95 disabled:opacity-50 order-1 sm:order-2"
                         >
                             {isSaving ? "Saving..." : "Save Changes"}
+                        </button>
+                        <button
+                            onClick={() => { setIsEditing(false); setFormData(profile); setMessage(null); setErrors({}); }}
+                            className="w-full sm:w-auto px-6 py-2.5 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-700 transition-all font-bold active:scale-95 order-2 sm:order-1"
+                        >
+                            Cancel
                         </button>
                     </div>
                 )}
@@ -261,41 +269,41 @@ export default function ProfilePage() {
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
                 <div className="relative group/cover">
                     <div
-                        className={`h-48 md:h-64 w-full relative cursor-pointer ${!(previews.cover || formData.coverPhotoUrl) ? 'bg-gradient-to-r from-blue-600 to-indigo-700' : ''}`}
+                        className={`h-40 md:h-64 w-full relative cursor-pointer ${!(previews.cover || formData.coverPhotoUrl) ? 'bg-gradient-to-tr from-blue-600 to-indigo-800 shadow-inner' : ''}`}
                         onClick={() => (previews.cover || formData.coverPhotoUrl) && setSelectedImage(previews.cover || formData.coverPhotoUrl || null)}
                     >
                         {(previews.cover || formData.coverPhotoUrl) && (
                             <img src={previews.cover || formData.coverPhotoUrl || ""} alt="Cover" className={`w-full h-full object-cover transition-opacity duration-300 ${isUploading.cover ? 'opacity-50' : 'opacity-100'}`} />
                         )}
-                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/cover:opacity-100 transition-opacity flex items-center justify-center">
-                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover/cover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                            <svg className="w-10 h-10 text-white/80 drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
                             </svg>
                         </div>
                         {isUploading.cover && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                                <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/50 border-t-white"></div>
                             </div>
                         )}
                         {isEditing && (
-                            <label className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer backdrop-blur-md transition-all flex items-center gap-2 border border-white/30 z-20">
+                            <label className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-black/60 hover:bg-black/80 text-white px-3 py-2 rounded-xl text-xs font-bold cursor-pointer backdrop-blur-sm transition-all flex items-center gap-2 border border-white/20 z-20 shadow-lg">
                                 <input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" />
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
-                                {isUploading.cover ? "Uploading..." : "Change Cover Photo"}
+                                {isUploading.cover ? "..." : "Change Cover"}
                             </label>
                         )}
                     </div>
 
-                    <div className="absolute -bottom-12 left-8 md:left-12 z-20">
+                    <div className="absolute -bottom-10 sm:-bottom-12 left-1/2 sm:left-12 -translate-x-1/2 sm:translate-x-0 z-20">
                         <div
                             className="relative inline-block cursor-pointer group/photo"
                             onClick={() => (previews.photo || formData.profilePhotoUrl) && setSelectedImage(previews.photo || formData.profilePhotoUrl || null)}
                         >
                             {previews.photo || formData.profilePhotoUrl ? (
-                                <div className="relative w-32 h-32 md:w-40 md:h-40">
+                                <div className="relative w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40">
                                     <img
                                         src={previews.photo || formData.profilePhotoUrl || ""}
                                         alt="Profile"
@@ -330,23 +338,23 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                <div className="pt-16 pb-8 px-8 md:px-12 border-b border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80">
-                    <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight mb-1">{profile.fullName}</h2>
-                    <p className="text-gray-500 dark:text-gray-400 font-medium flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                <div className="pt-12 sm:pt-16 pb-6 sm:pb-8 px-6 sm:px-12 border-b border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 text-center sm:text-left">
+                    <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight mb-1">{profile.fullName}</h2>
+                    <p className="text-gray-500 dark:text-gray-400 font-medium flex items-center justify-center sm:justify-start gap-2 text-sm sm:text-base">
+                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v10a2 2 0 002 2z" />
                         </svg>
-                        {profile.email}
+                        <span className="truncate">{profile.email}</span>
                     </p>
                     {profile.rollNumber && (
-                        <div className="mt-3 inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                        <div className="mt-4 inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-[0.2em]">
                             Roll No: {profile.rollNumber}
                         </div>
                     )}
                 </div>
 
                 {/* Form Sections */}
-                <div className="p-8 space-y-8">
+                <div className="p-6 sm:p-12 space-y-10">
                     {/* Professional */}
                     <Section title="Professional Info">
                         <Field label="Full Name" name="fullName" value={formData.fullName || ""} onChange={handleChange} editing={isEditing} error={errors.fullName?.[0]} />
@@ -414,7 +422,7 @@ export default function ProfilePage() {
                                             name="hotelSelectionId"
                                             value={formData.hotelSelectionId || ""}
                                             onChange={(e) => setFormData(prev => ({ ...prev, hotelSelectionId: e.target.value || null }))}
-                                            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:border-transparent transition-all"
+                                            className="w-full px-3 py-2 pr-10 rounded-lg border border-gray-300 dark:border-gray-700 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:border-transparent transition-all appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke%3D%22%239CA3AF%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M19%209l-7%207-7-7%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1rem_1rem] bg-[right_0.75rem_center] bg-no-repeat"
                                         >
                                             <option value="">-- Select or No Hotel Selection --</option>
                                             {hotels.map(h => (

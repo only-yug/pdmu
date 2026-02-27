@@ -13,7 +13,7 @@ async function getAlumni() {
         // Fetch Alumni Profiles ordered by full name
         const alumniResult = await db.select().from(alumniProfiles).orderBy(asc(alumniProfiles.fullName));
 
-        return alumniResult.map(a => {
+        return alumniResult.map((a: any) => {
             // Split fullName into first/last for AlumniGrid compatibility
             const nameParts = (a.fullName || "").split(" ");
             const firstName = nameParts[0] || "";

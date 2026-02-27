@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
@@ -127,30 +126,35 @@ export default function MemoriesGrid({ initialMemories }: { initialMemories: Mem
 
 
     return (
-        <div className="container mx-auto px-6 lg:px-32 py-8 relative">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-32 py-8 relative">
             {/* Header with Share Button */}
-            <div className="flex justify-between items-center mb-8 bg-gradient-to-r from-teal-400 to-blue-500 rounded-xl p-6 shadow-lg text-white">
-                <div>
-                    <h1 className="text-3xl font-bold mb-1 flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8 bg-gradient-to-r from-teal-400 to-blue-500 rounded-2xl p-6 sm:p-8 shadow-xl text-white overflow-hidden relative">
+                <div className="relative z-10">
+                    <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 sm:h-8 sm:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                         </svg>
                         Memories
                     </h1>
-                    <p className="text-teal-100">Share your favorite moments from college days</p>
+                    <p className="text-teal-50 text-sm sm:text-base opacity-90 max-w-[250px] sm:max-w-none">Share your favorite moments from college days</p>
                 </div>
                 {/* Create Access given to both Batchmates and Admins */}
-                {(session?.user?.alumniProfileId || session?.user?.role === 'admin') && (
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold hover:bg-blue-50 transition-colors flex items-center gap-2 shadow-sm"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                        </svg>
-                        Share Memory
-                    </button>
-                )}
+                <div className="relative z-10 w-full sm:w-auto">
+                    {(session?.user?.alumniProfileId || session?.user?.role === 'admin') && (
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="w-full sm:w-auto bg-white text-blue-600 px-6 py-3 rounded-xl font-bold hover:bg-blue-50 transition-all flex items-center justify-center gap-2 shadow-md active:scale-95"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                            </svg>
+                            Share Memory
+                        </button>
+                    )}
+                </div>
+
+                {/* Decorative background circle */}
+                <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl text-white"></div>
             </div>
 
             {/* Grid */}

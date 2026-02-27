@@ -4,8 +4,11 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
+export const dynamic = "force-dynamic";
+
 import AuthProviders from "@/components/AuthProviders";
 import ProfileCompleteGuard from "@/components/ProfileCompleteGuard";
+import { auth } from "@/auth";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,12 +22,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen flex flex-col bg-slate-50 dark:bg-gray-950 transition-colors duration-300`}>
-        <AuthProviders>
+        <AuthProviders session={session}>
           <ProfileCompleteGuard>
-            <Navbar />
+            <Navbar session={session} />
             <main className="flex-grow pt-16">
               {children}
             </main>

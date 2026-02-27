@@ -3,7 +3,6 @@ import { getDrizzleDb } from "@/lib/db";
 import { eq } from "drizzle-orm";
 import { alumniProfiles } from "@/lib/db/schema";
 import Link from "next/link";
-import Image from "next/image";
 import { auth } from "@/auth";
 import ClientImagePreview from "@/components/ClientImagePreview";
 
@@ -15,7 +14,7 @@ async function getAlumniProfile(id: string) {
         const profile = await db
             .select()
             .from(alumniProfiles)
-            .where(eq(alumniProfiles.id, id))
+            .where(eq(alumniProfiles.id, parseInt(id)))
             .limit(1)
             .get();
         return profile || null;
@@ -95,7 +94,7 @@ export default async function AlumniProfilePage({ params }: { params: { id: stri
                                         />
                                     ) : (
                                         <span className="text-4xl text-gray-400 capitalize">
-                                            {profile.fullName.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                                            {profile.fullName.split(' ').map((n: any) => n[0]).join('').substring(0, 2)}
                                         </span>
                                     )}
                                 </div>

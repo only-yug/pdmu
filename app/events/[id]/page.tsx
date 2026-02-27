@@ -68,7 +68,7 @@ export default async function EventDetailsPage({ params }: { params: { id: strin
                     <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-8 tracking-tight">Batchmates Attending</h3>
                     {attendees.length > 0 ? (
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                            {attendees.map(attendee => (
+                            {attendees.map((attendee: any) => (
                                 <div key={attendee.id} className="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-800/50 p-6 rounded-3xl border border-gray-100 dark:border-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all group">
                                     <div className="relative">
                                         {attendee.profilePhotoUrl ? (

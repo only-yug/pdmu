@@ -2,17 +2,22 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
 import { useSession } from "next-auth/react";
 import { handleSignOut } from "@/lib/actions";
+import { Session } from "next-auth";
 
-export default function Navbar() {
+export default function Navbar({ session: initialSession }: { session?: Session | null }) {
     const [isOpen, setIsOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const pathname = usePathname();
-    const { data: session } = useSession();
+    const { data: clientSession, status } = useSession();
+
+    // Use the prop session if clientSession is not yet available
+    const session = clientSession || initialSession;
+
     const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
     const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -27,7 +32,7 @@ export default function Navbar() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const fetchProfilePhoto = async () => {
+    const fetchProfilePhoto = useCallback(async () => {
         if (!session) return;
         try {
             const res = await fetch("/api/user/profile");
@@ -38,13 +43,13 @@ export default function Navbar() {
         } catch (err) {
             console.error("Navbar profile fetch error:", err);
         }
-    };
+    }, [session]);
 
     useEffect(() => {
         fetchProfilePhoto();
         window.addEventListener("profileUpdated", fetchProfilePhoto);
         return () => window.removeEventListener("profileUpdated", fetchProfilePhoto);
-    }, [session]);
+    }, [fetchProfilePhoto]);
 
     const getInitials = (name?: string | null) => {
         if (!name) return "U";
@@ -73,14 +78,14 @@ export default function Navbar() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16 items-center">
                     {/* Logo */}
-                    <div className="flex-shrink-0 flex items-center gap-2">
-                        <div className="bg-blue-600 text-white p-1.5 rounded-lg">
+                    <div className="flex-shrink-0 flex items-center gap-2 max-w-[40%] sm:max-w-none">
+                        <div className="bg-blue-600 text-white p-1.5 rounded-lg shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
                             </svg>
                         </div>
-                        <Link href="/leading" className="font-bold text-gray-900 dark:text-white text-lg transition-colors">
-                            PDUMC <span className="text-gray-500 dark:text-gray-400 font-normal text-sm">Batch 2001</span>
+                        <Link href="/leading" className="font-bold text-gray-900 dark:text-white text-lg transition-colors whitespace-nowrap overflow-hidden">
+                            PDUMC <span className="text-gray-500 dark:text-gray-400 font-normal text-sm hidden sm:inline">Batch 2001</span>
                         </Link>
                     </div>
 
@@ -108,21 +113,23 @@ export default function Navbar() {
                     <div className="hidden md:flex items-center gap-4">
                         <ThemeToggle />
 
-                        {session ? (
+                        {status === 'loading' ? (
+                            <div className="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse"></div>
+                        ) : session ? (
                             <div className="relative" ref={userMenuRef}>
                                 <button
                                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                    className="flex items-center gap-2 bg-blue-50/50 hover:bg-blue-50 dark:bg-gray-800/50 dark:hover:bg-gray-800 px-3 py-1.5 rounded-full transition-all border border-transparent hover:border-blue-100 dark:hover:border-gray-700"
+                                    className="flex items-center gap-2 bg-blue-50/50 hover:bg-blue-50 dark:bg-gray-800/50 dark:hover:bg-gray-800 px-3 py-1.5 rounded-full transition-all border border-transparent hover:border-blue-100 dark:hover:border-gray-700 max-w-[150px] sm:max-w-[200px]"
                                 >
-                                    <div className="bg-blue-600 text-white rounded-full h-8 w-8 flex items-center justify-center overflow-hidden shadow-sm">
+                                    <div className="bg-blue-600 text-white rounded-full h-8 w-8 flex items-center justify-center overflow-hidden shadow-sm shrink-0">
                                         {profilePhoto ? (
                                             <img src={profilePhoto} alt="User" className="h-full w-full object-cover" />
                                         ) : (
-                                            <span className="text-[10px] font-bold">{getInitials(session.user?.name)}</span>
+                                            <span className="text-[10px] font-bold">{getInitials(session.user?.name || session.user?.email)}</span>
                                         )}
                                     </div>
-                                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                                        {session.user?.name}
+                                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate pr-1">
+                                        {session.user?.name || session.user?.email}
                                     </span>
                                 </button>
 
@@ -197,7 +204,11 @@ export default function Navbar() {
                                 <span className="ml-2">{link.name}</span>
                             </Link>
                         ))}
-                        {session ? (
+                        {status === 'loading' ? (
+                            <div className="px-3 py-4 border-t border-gray-100 dark:border-gray-800">
+                                <div className="h-4 w-24 bg-gray-100 dark:bg-gray-800 animate-pulse rounded"></div>
+                            </div>
+                        ) : session ? (
                             <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
                                 <div className="flex items-center px-3 mb-3">
                                     <div className="bg-blue-600 text-white rounded-full h-10 w-10 flex items-center justify-center overflow-hidden shadow-sm mr-3">
@@ -208,8 +219,8 @@ export default function Navbar() {
                                         )}
                                     </div>
                                     <div>
-                                        <div className="text-base font-bold text-gray-800 dark:text-white">{session.user?.name}</div>
-                                        <div className="text-xs text-gray-500">{session.user?.email}</div>
+                                        <div className="text-base font-bold text-gray-800 dark:text-white truncate max-w-[150px]">{session.user?.name || session.user?.email}</div>
+                                        <div className="text-xs text-gray-500 truncate max-w-[150px]">{session.user?.email}</div>
                                     </div>
                                 </div>
                                 <Link

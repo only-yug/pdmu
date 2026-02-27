@@ -15,7 +15,7 @@ interface Stats {
 }
 
 interface Alumni {
-    id: string;
+    id: number;
     fullName: string;
     email: string;
     rollNumber: number | null;
@@ -136,7 +136,7 @@ export default function AdminDashboardClient({
     };
 
     // Claim link generation
-    const handleGenerateClaimLink = async (alumniId: string, fullName: string) => {
+    const handleGenerateClaimLink = async (alumniId: number, fullName: string) => {
         setIsGeneratingLink(true);
         try {
             const res = await fetch("/api/admin/claims/generate", {

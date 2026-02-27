@@ -147,23 +147,7 @@ export default async function ReunionHubPage() {
                         <p className="text-gray-600 dark:text-gray-400 text-lg">Find your old friends, update your profile, and relive the golden days</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {/* Claim Card */}
-                        <div className="bg-white dark:bg-gray-900 p-10 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all group overflow-hidden relative">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100/50 dark:bg-blue-900/20 blur-3xl -mr-16 -mt-16 group-hover:bg-blue-200/50 transition-colors"></div>
-                            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-2xl flex items-center justify-center mb-8 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path d="M12 14l9-5-9-5-9 5 9 5z" /><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                                </svg>
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Claim Your Profile</h3>
-                            <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
-                                Find your name in the batch list and update your profile with current information
-                            </p>
-                            <Link href="/registerProfile" className="text-blue-600 dark:text-blue-400 font-bold inline-flex items-center gap-2 hover:gap-3 transition-all">
-                                Get Started <span className="text-xl">→</span>
-                            </Link>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
 
                         {/* Find Card */}
                         <div className="bg-white dark:bg-gray-900 p-10 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all group overflow-hidden relative border-2 border-transparent hover:border-blue-100 dark:hover:border-blue-900/30">

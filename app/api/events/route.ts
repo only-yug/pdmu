@@ -13,7 +13,7 @@ export async function GET() {
         const allEvents = await database.select().from(events).all();
 
         // Parse JSON fields
-        const formattedEvents = allEvents.map(event => ({
+        const formattedEvents = allEvents.map((event: any) => ({
             ...event,
             eventSchedule: event.eventScheduleJson ? JSON.parse(event.eventScheduleJson) : null,
         }));

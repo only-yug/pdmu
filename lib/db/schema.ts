@@ -6,10 +6,12 @@ export const users = sqliteTable("users", {
     id: text("id").primaryKey(),          // UUID text (as per diagram)
     email: text("email").notNull().unique(),
     passwordHash: text("password_hash").notNull(),
-    role: text("role", { enum: ["alumni", "admin"] }).default("alumni").notNull(),
+    fullName: text("full_name"),
+    role: text("role", { enum: ["user", "alumni", "admin"] }).default("user").notNull(),
     createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
 }, (table) => ({
     emailIdx: index("idx_users_email").on(table.email),
+    fullNameIdx: index("idx_users_full_name").on(table.fullName),
 }));
 
 // ─── HOTELS ───────────────────────────────────────────────────────────────────
@@ -24,7 +26,7 @@ export const hotels = sqliteTable("hotels", {
 
 // ─── ALUMNI PROFILES ──────────────────────────────────────────────────────────
 export const alumniProfiles = sqliteTable("alumni_profiles", {
-    id: text("id").primaryKey(),          // UUID text (as per diagram)
+    id: integer("id").primaryKey({ autoIncrement: true }),          // Changed to Auto-increment Integer
     userId: text("user_id"),              // FK → users.id
 
     rollNumber: integer("roll_number"),   // integer as per diagram (NN)
@@ -44,7 +46,7 @@ export const alumniProfiles = sqliteTable("alumni_profiles", {
     latitude: integer("latitude", { mode: "number" }),
     longitude: integer("longitude", { mode: "number" }),
 
-    email: text("email").notNull().unique(),
+    email: text("email").unique(),
     phoneNumber: text("phone_number"),
     whatsappNumber: text("whatsapp_number"),
     linkedinUrl: text("linkedin_url"),
@@ -70,7 +72,7 @@ export const alumniProfiles = sqliteTable("alumni_profiles", {
 // ─── CLAIM TOKENS ─────────────────────────────────────────────────────────────
 export const claimTokens = sqliteTable("claim_tokens", {
     tokenHash: text("token_hash").primaryKey(),
-    alumniId: text("alumni_id").notNull().references(() => alumniProfiles.id, { onDelete: "cascade" }),
+    alumniId: integer("alumni_id").notNull().references(() => alumniProfiles.id, { onDelete: "cascade" }),
     isUsed: integer("is_used", { mode: "boolean" }).default(false),
     expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
     createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
@@ -118,7 +120,7 @@ export const events = sqliteTable("events", {
 // ─── EVENT ATTENDEES ──────────────────────────────────────────────────────────
 export const eventAttendees = sqliteTable("event_attendees", {
     eventId: text("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
-    alumniId: text("alumni_id").notNull().references(() => alumniProfiles.id, { onDelete: "cascade" }),
+    alumniId: integer("alumni_id").notNull().references(() => alumniProfiles.id, { onDelete: "cascade" }),
     createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
 }, (table) => ({
     pk: primaryKey({ columns: [table.eventId, table.alumniId] }),

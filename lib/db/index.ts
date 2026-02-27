@@ -31,36 +31,42 @@ export function getDatabase(): Database {
     try {
         const ctx = getRequestContext();
         if (ctx?.env?.DB) {
+            console.log('✅ DB found in Cloudflare Request Context');
             return ctx.env.DB as unknown as Database;
         }
-    } catch {
+    } catch (_e: any) {
         // Not in Cloudflare context — fall through
     }
 
-    // 2. Check globalThis (populated by next.config.ts for local dev)
+    // 2. Check globalThis (populated by next.config.mjs for local dev)
     if ((globalThis as any).DB) {
+        console.log('✅ DB found in globalThis');
         return (globalThis as any).DB as Database;
     }
 
     // 3. Check process.env (some bridging setups)
     if (process.env.DB) {
+        console.log('✅ DB found in process.env.DB');
         return (process.env.DB as unknown) as Database;
     }
 
     // 4. Production — hard error
     if (process.env.NODE_ENV === 'production') {
-        console.error('Database binding (DB) not found. Check Cloudflare Pages bindings.');
+        console.error('❌ Database binding (DB) not found.');
     }
 
-    // 5. Development fallback — silent mock so pages can render
-    console.warn('--- DB BINDING NOT FOUND: CHECK WRANGLER PROXY ---');
+    // 5. Minimal quiet mock for UI testing
+    const mockStmt = {
+        bind: function () { return this; },
+        first: async () => null,
+        run: async () => ({ success: true, meta: {} }),
+        all: async () => ({ results: [], meta: {} }),
+        raw: async () => [],
+        values: async () => []
+    };
+
     return {
-        prepare: () => ({
-            bind: function () { return this; },
-            first: async () => null,
-            run: async () => ({ success: true }),
-            all: async () => ({ results: [] })
-        } as any),
+        prepare: () => mockStmt as any,
         batch: async () => [],
         exec: async () => { }
     } as unknown as Database;
@@ -71,8 +77,14 @@ export const db = (env: any) => {
     return drizzle(env.DB, { schema });
 };
 
+// Internal cache for the Drizzle instance
+let cachedDb: any = null;
+
 // Export Drizzle instance with auto-binding lookup
 export function getDrizzleDb() {
+    if (cachedDb) return cachedDb;
+
     const binding = getDatabase();
-    return drizzle(binding as any, { schema });
+    cachedDb = drizzle(binding as any, { schema });
+    return cachedDb;
 }

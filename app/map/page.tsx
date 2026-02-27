@@ -31,7 +31,7 @@ async function getAlumniLocations() {
             .orderBy(asc(alumniProfiles.country), asc(alumniProfiles.fullName))
             .all();
 
-        return results.map(row => ({
+        return results.map((row: any) => ({
             id: row.id,
             name: row.fullName,
             city: row.city,

@@ -28,7 +28,7 @@ async function getMemories() {
             .leftJoin(alumniProfiles, eq(users.id, alumniProfiles.userId))
             .orderBy(desc(memories.createdAt));
 
-        return result.map(m => {
+        return result.map((m: any) => {
             // Determine name to show
             let displayName = "Anonymous";
             if (m.alumniName) {

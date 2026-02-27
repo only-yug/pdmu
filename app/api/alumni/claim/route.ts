@@ -10,7 +10,6 @@ export async function POST(req: Request) {
         const body = await req.json() as Record<string, any>;
         const {
             alumniId,
-            bio,
             specialization,
             currentDesignation,
             workplace,
@@ -22,8 +21,7 @@ export async function POST(req: Request) {
             whatsappNumber,
             linkedinUrl,
             profilePhotoUrl,
-            rsvpAdults,
-            rsvpKids,
+            coverPhotoUrl,
             hotelSelectionId,
             specialReqs,
         } = body;
@@ -40,7 +38,7 @@ export async function POST(req: Request) {
         // 1. Check if profile exists
         const profile = await db.select()
             .from(alumniProfiles)
-            .where(eq(alumniProfiles.id, alumniId))
+            .where(eq(alumniProfiles.id, Number(alumniId)))
             .get();
 
         if (!profile) {
@@ -55,50 +53,84 @@ export async function POST(req: Request) {
             }
         }
 
-        // 2. Find or create user
+        // 2. Find user by the email provided in the form OR by fullName fallback
         let userId: string | null = null;
-        if (session && session.user && session.user.id) {
-            userId = session.user.id;
-        } else if (email) {
-            const existingUser = await db.select({ id: users.id })
+        let matchedUserEmail: string | null = null;
+
+        if (email) {
+            const matchingUser = await db.select({ id: users.id, email: users.email })
                 .from(users)
                 .where(eq(users.email, email))
                 .get();
 
-            if (existingUser) {
-                userId = existingUser.id;
+            if (matchingUser) {
+                userId = matchingUser.id;
+                matchedUserEmail = matchingUser.email;
             }
-            // Note: if user doesn't exist, they should register first.
-            // We just link the profile to the user once they register.
+        }
+
+        // Fallback: Name-based matching if email match failed
+        if (!userId && (body.fullName || profile.fullName)) {
+            const nameToMatch = (body.fullName || profile.fullName).trim().toLowerCase();
+
+            // Get all users to perform fuzzy matching (suitable for small/medium DB)
+            const allUsers = await db.select({ id: users.id, email: users.email, fullName: users.fullName })
+                .from(users)
+                .all();
+
+            const fuzzyMatch = allUsers.find((u: any) => {
+                if (!u.fullName) return false;
+                const uName = u.fullName.toLowerCase();
+                // Match if one name contains the other (e.g., "Bhavik" matches "Bhavik Parmar")
+                return uName.includes(nameToMatch) || nameToMatch.includes(uName);
+            });
+
+            if (fuzzyMatch) {
+                userId = fuzzyMatch.id;
+                matchedUserEmail = fuzzyMatch.email;
+                console.log(`Fuzzy match found: "${fuzzyMatch.fullName}" matches "${nameToMatch}"`);
+            }
         }
 
         // 3. Update profile with claimed data
         await db.update(alumniProfiles)
             .set({
                 userId: userId,
-                bioJourney: bio || undefined,
+                fullName: body.fullName || profile.fullName,
+                rollNumber: body.rollNumber ? parseInt(body.rollNumber) : profile.rollNumber,
+                bioJourney: body.bioJourney || body.bio || undefined,
+                favoriteMemories: body.favoriteMemories || undefined,
                 specialization: specialization || undefined,
                 currentDesignation: currentDesignation || undefined,
                 workplace: workplace || undefined,
                 country: country || undefined,
                 state: state || undefined,
                 city: city || undefined,
-                email: email || profile.email,
+                email: email || matchedUserEmail || profile.email,
                 phoneNumber: phoneNumber || undefined,
                 whatsappNumber: whatsappNumber || undefined,
                 linkedinUrl: linkedinUrl || undefined,
                 instagramHandle: body.instagramHandle || undefined,
                 facebookUrl: body.facebookUrl || undefined,
                 profilePhotoUrl: profilePhotoUrl || undefined,
+                coverPhotoUrl: coverPhotoUrl || undefined,
                 isAttending: body.isAttending || undefined,
-                rsvpAdults: rsvpAdults ?? 0,
-                rsvpKids: rsvpKids ?? 0,
+                rsvpAdults: body.rsvpAdults ? parseInt(body.rsvpAdults) : 0,
+                rsvpKids: body.rsvpKids ? parseInt(body.rsvpKids) : 0,
                 hotelSelectionId: hotelSelectionId || null,
                 specialReqs: specialReqs || undefined,
                 updatedAt: new Date(),
             })
-            .where(eq(alumniProfiles.id, alumniId))
+            .where(eq(alumniProfiles.id, Number(alumniId)))
             .run();
+
+        // 4. Update the user role to 'alumni' for the matched user
+        if (matchedUserEmail) {
+            await db.update(users)
+                .set({ role: 'alumni' })
+                .where(eq(users.email, matchedUserEmail))
+                .run();
+        }
 
         return NextResponse.json({ success: true, message: "Profile claimed successfully" });
 

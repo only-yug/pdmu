@@ -10,7 +10,7 @@ async function getEvents() {
 
         const allEvents = await db.select().from(events).orderBy(asc(events.eventStartDate)).all();
 
-        const eventsWithCounts = await Promise.all(allEvents.map(async (event) => {
+        const eventsWithCounts = await Promise.all(allEvents.map(async (event: any) => {
             const attendeeRecords = await db
                 .select({
                     count: sql<number>`count(*)`

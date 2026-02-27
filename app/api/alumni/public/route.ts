@@ -31,7 +31,7 @@ export async function GET(req: Request) {
     if (id) {
       const result = await db.select(selectFields)
         .from(alumniProfiles)
-        .where(eq(alumniProfiles.id, id))
+        .where(eq(alumniProfiles.id, Number(id)))
         .get();
 
       return NextResponse.json({ data: result ? [result] : [] });

@@ -2,14 +2,14 @@ import type { NextAuthConfig } from "next-auth";
 
 declare module "next-auth" {
   interface User {
-    role: 'alumni' | 'admin';
-    alumniProfileId?: string; // Links them to the batchmate group
+    role: 'user' | 'alumni' | 'admin';
+    alumniProfileId?: number;
   }
   interface Session {
     user: {
       id: string;
-      role: 'alumni' | 'admin';
-      alumniProfileId?: string;
+      role: 'user' | 'alumni' | 'admin';
+      alumniProfileId?: number;
     } & import("next-auth").DefaultSession["user"];
   }
 }
@@ -63,8 +63,8 @@ export const authConfig = {
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as 'alumni' | 'admin';
-        session.user.alumniProfileId = token.alumniProfileId as string | undefined;
+        session.user.role = token.role as 'user' | 'alumni' | 'admin';
+        session.user.alumniProfileId = token.alumniProfileId as number | undefined;
       }
       return session;
     },

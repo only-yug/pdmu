@@ -50,6 +50,13 @@
       "when": 1772101789017,
       "tag": "0006_giant_tony_stark",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1772174849589,
+      "tag": "0007_clammy_shaman",
+      "breakpoints": true
     }
   ]
 }

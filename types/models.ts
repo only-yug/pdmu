@@ -5,13 +5,13 @@ export interface User {
   id: string;           // UUID text PK
   email: string;
   password_hash?: string;
-  role: 'alumni' | 'admin';
+  role: 'user' | 'alumni' | 'admin';
   created_at: number;   // unix timestamp
 }
 
 // Alumni Profile model — matches `alumni_profiles` table
 export interface AlumniProfile {
-  id: string;           // UUID text PK
+  id: number;           // Auto-increment Integer PK
   user_id?: string | null;
 
   // Basic Information
@@ -112,7 +112,7 @@ export interface Hotel {
 // Claim Token model — matches `claim_tokens` table
 export interface ClaimToken {
   token_hash: string;   // text PK
-  alumni_id: string;
+  alumni_id: number;
   is_used: boolean;
   expires_at: number;
   created_at: number;

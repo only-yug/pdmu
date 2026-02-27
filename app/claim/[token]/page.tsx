@@ -1,6 +1,6 @@
 import { getDrizzleDb } from "@/lib/db";
 import { claimTokens, alumniProfiles } from "@/lib/db/schema";
-import { eq, and, getTableColumns } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -62,7 +62,7 @@ export default async function ClaimProfilePage({ params }: { params: { token: st
     // Fetch the alumni profile
     const profile = await db.select()
         .from(alumniProfiles)
-        .where(eq(alumniProfiles.id, tokenRecord.alumniId))
+        .where(eq(alumniProfiles.id, Number(tokenRecord.alumniId)))
         .get();
 
     if (!profile) {

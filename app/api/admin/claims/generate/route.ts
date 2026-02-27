@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
         await db.insert(claimTokens).values({
             tokenHash,
-            alumniId,
+            alumniId: Number(alumniId),
             expiresAt,
         }).run();
 

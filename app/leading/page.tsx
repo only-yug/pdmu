@@ -68,26 +68,29 @@ export default async function LeadingPage() {
                 <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
 
-                    <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-2 rounded-full mb-8 animate-fade-in-up">
-                        <span className="flex h-2 w-2 relative">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-200 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-300"></span>
-                        </span>
-                        <span className="text-sm font-medium">CELEBRATING</span>
-                        <span className="font-bold text-sm">Silver Jubilee • {stats.years} Years of Excellence</span>
+                    <div className="inline-flex flex-col sm:flex-row items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md border border-white/20 px-5 py-3 sm:py-2 rounded-2xl sm:rounded-full mb-10 animate-fade-in-up max-w-[90vw] mx-auto">
+                        <div className="flex items-center gap-2">
+                            <span className="flex h-2 w-2 relative">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-200 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-300"></span>
+                            </span>
+                            <span className="text-[10px] sm:text-xs font-black tracking-widest uppercase text-teal-100">CELEBRATING</span>
+                        </div>
+                        <div className="hidden sm:block w-px h-4 bg-white/20"></div>
+                        <span className="font-bold text-xs sm:text-sm text-center">Silver Jubilee • {stats.years} Years of Excellence</span>
                     </div>
 
-                    <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight mb-6 drop-shadow-sm">
+                    <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 drop-shadow-sm">
                         Welcome Back<br />
-                        <span className="text-3xl md:text-9xl text-teal-100">Batch of 2001</span>
+                        <span className="text-2xl md:text-9xl text-teal-100">Batch of 2001</span>
                     </h1>
 
                     <div className="flex items-center justify-center gap-2 mb-8 text-teal-50 dark:text-gray-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 hidden sm:block shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                         </svg>
-                        <span className="text-xl font-medium">Pandit Dindayal Upadhyay Medical College</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <span className="text-base sm:text-lg md:text-xl font-medium px-4">Pandit Dindayal Upadhyay Medical College</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 hidden sm:block shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                         </svg>
                     </div>

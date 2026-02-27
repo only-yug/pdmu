@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm";
 export const runtime = 'edge';
 
 const registerSchema = z.object({
-    fullName: z.string().min(1, "Full name is required"),
+    fullName: z.string().optional(),
     email: z.string().email("Invalid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     claimToken: z.string().optional(),
@@ -26,7 +26,8 @@ export async function POST(req: Request) {
             );
         }
 
-        const { fullName, email, password, claimToken } = validatedData.data;
+        const { fullName: providedFullName, email, password, claimToken } = validatedData.data;
+        const fullName = providedFullName || email.split('@')[0];
 
         const db = getDrizzleDb();
 
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
                 // or keep the old ones. We'll update them to ensure they match auth.
                 fullName,
                 email,
-            }).where(eq(alumniProfiles.id, tokenRecord.alumniId)).run();
+            }).where(eq(alumniProfiles.id, Number(tokenRecord.alumniId))).run();
 
             // Mark token as used
             await db.update(claimTokens)
@@ -95,12 +96,13 @@ export async function POST(req: Request) {
 
         const hashedPassword = await hashPassword(password);
 
-        // Insert into users (schema has: id, email, passwordHash, role, createdAt)
+        // Insert into users (schema has: id, email, passwordHash, role, createdAt, fullName)
         const userResult = await db.insert(users).values({
             id: crypto.randomUUID(),
             email,
             passwordHash: hashedPassword,
-            role: 'alumni',
+            fullName: fullName,
+            role: 'user', // Default to normal user for new registrations
         }).returning({ id: users.id }).get();
 
         if (!userResult) {
@@ -109,14 +111,10 @@ export async function POST(req: Request) {
 
         const userId = userResult.id;
 
-        // Insert alumni profile — rollNumber is integer, use null for self-registered
-        await db.insert(alumniProfiles).values({
-            id: crypto.randomUUID(),
-            userId,
-            fullName,
-            email,
-            rollNumber: null,  // self-registered: no roll number assigned yet
-        }).run();
+        // Only insert alumni profile if they are intended to be an alumni
+        // In this case, since existingProfile was null, we don't create it anymore
+        // unless you want self-registered users to also be alumni eventually.
+        // Based on user request, we keep them as normal users.
 
         return NextResponse.json({ message: "User created successfully", userId }, { status: 201 });
 
