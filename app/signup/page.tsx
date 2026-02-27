@@ -1,5 +1,7 @@
 'use client';
 
+export const runtime = 'edge';
+
 import { signup } from "@/lib/actions";
 import { useFormState, useFormStatus } from "react-dom";
 import Link from "next/link";
