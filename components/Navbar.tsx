@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
-import { useSession } from "next-auth/react";
-import { handleSignOut } from "@/lib/actions";
+import { useSession, signOut } from "next-auth/react";
 import { Session } from "next-auth";
 
 export default function Navbar({ session: initialSession }: { session?: Session | null }) {
@@ -33,15 +32,21 @@ export default function Navbar({ session: initialSession }: { session?: Session 
     }, []);
 
     const fetchProfilePhoto = useCallback(async () => {
-        if (!session) return;
+        if (!session) {
+            setProfilePhoto(null);
+            return;
+        }
         try {
             const res = await fetch("/api/user/profile");
             const data = await res.json() as Record<string, any>;
             if (res.ok && data.profile?.profilePhotoUrl) {
                 setProfilePhoto(data.profile.profilePhotoUrl);
+            } else {
+                setProfilePhoto(null);
             }
         } catch (err) {
             console.error("Navbar profile fetch error:", err);
+            setProfilePhoto(null);
         }
     }, [session]);
 
@@ -135,7 +140,7 @@ export default function Navbar({ session: initialSession }: { session?: Session 
 
                                 {isUserMenuOpen && (
                                     <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                                        <Link
+                                        <a
                                             href="/profile"
                                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                             onClick={() => setIsUserMenuOpen(false)}
@@ -144,9 +149,9 @@ export default function Navbar({ session: initialSession }: { session?: Session 
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                             </svg>
                                             My Profile
-                                        </Link>
+                                        </a>
                                         <button
-                                            onClick={() => handleSignOut()}
+                                            onClick={() => signOut({ callbackUrl: '/login' })}
                                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors border-t border-gray-50 dark:border-gray-800 mt-1"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -223,7 +228,7 @@ export default function Navbar({ session: initialSession }: { session?: Session 
                                         <div className="text-xs text-gray-500 truncate max-w-[150px]">{session.user?.email}</div>
                                     </div>
                                 </div>
-                                <Link
+                                <a
                                     href="/profile"
                                     className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800"
                                     onClick={() => setIsOpen(false)}
@@ -232,11 +237,11 @@ export default function Navbar({ session: initialSession }: { session?: Session 
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
                                     My Profile
-                                </Link>
+                                </a>
                                 <button
                                     onClick={() => {
-                                        handleSignOut();
                                         setIsOpen(false);
+                                        signOut({ callbackUrl: '/login' });
                                     }}
                                     className="w-full flex items-center px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
                                 >

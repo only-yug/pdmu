@@ -4,7 +4,8 @@ import { handleGoogleSignIn, authenticate } from "@/lib/actions";
 import { useFormState, useFormStatus } from "react-dom";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
+import { validateEmailDomain } from "@/lib/validation";
 
 export const runtime = 'edge';
 
@@ -17,9 +18,25 @@ export default function LoginPage() {
 }
 
 function LoginForm() {
-  const [error, dispatch] = useFormState(authenticate, undefined);
+  const [serverError, dispatch] = useFormState(authenticate, undefined);
+  const [clientError, setClientError] = useState<string | undefined>(undefined);
   const searchParams = useSearchParams();
   const isRegistered = searchParams.get('registered') === 'true';
+
+  const handleSubmit = (formData: FormData) => {
+    setClientError(undefined);
+    const email = formData.get("email") as string;
+
+    const { isValid, error: validationError } = validateEmailDomain(email);
+    if (!isValid) {
+      setClientError(validationError);
+      return;
+    }
+
+    dispatch(formData);
+  };
+
+  const error = clientError || serverError;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex items-center justify-center p-4">
@@ -51,7 +68,7 @@ function LoginForm() {
           Sign in to your account
         </p>
 
-        <form action={dispatch} className="space-y-4 mb-6">
+        <form action={handleSubmit} className="space-y-4 mb-6">
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1 ml-1" htmlFor="email">
               Email Address

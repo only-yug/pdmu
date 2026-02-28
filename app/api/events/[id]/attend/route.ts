@@ -52,13 +52,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         if (profiles.length === 0) {
             if (session.user.role === "admin") {
                 // Auto-provision an alumni profile for the admin so they can test/use RSVPs
-                alumniId = crypto.randomUUID();
                 await db.insert(alumniProfiles).values({
-                    id: alumniId,
                     email: session.user.email,
                     fullName: session.user.name || "Admin",
                     profilePhotoUrl: session.user.image,
                 }).run();
+
+                const newAdminProfile = await db.select().from(alumniProfiles).where(eq(alumniProfiles.email, session.user.email)).limit(1);
+                if (newAdminProfile.length === 0) throw new Error("Failed to create admin profile");
+                alumniId = newAdminProfile[0].id;
             } else {
                 return NextResponse.json({ error: "Alumni profile not found" }, { status: 404 });
             }

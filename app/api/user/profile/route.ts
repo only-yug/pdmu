@@ -18,14 +18,19 @@ export async function GET() {
 
         let profile = await database.select()
             .from(alumniProfiles)
-            .where(eq(alumniProfiles.email, session.user.email))
+            .where(eq(alumniProfiles.userId, session.user.id))
             .get();
 
         if (!profile) {
+            profile = await database.select()
+                .from(alumniProfiles)
+                .where(eq(alumniProfiles.email, session.user.email))
+                .get();
+        }
+
+        if (!profile) {
             if (session.user.role === "admin") {
-                const alumniId = crypto.randomUUID();
                 await database.insert(alumniProfiles).values({
-                    id: alumniId,
                     email: session.user.email,
                     fullName: session.user.name || "Admin",
                     profilePhotoUrl: session.user.image,
@@ -36,7 +41,7 @@ export async function GET() {
                     .where(eq(alumniProfiles.email, session.user.email))
                     .get();
             } else {
-                return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+                return NextResponse.json({ profile: null });
             }
         }
 

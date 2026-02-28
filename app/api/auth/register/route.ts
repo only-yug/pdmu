@@ -83,26 +83,22 @@ export async function POST(req: Request) {
         // Check if email exists in alumni_profiles
         const existingProfile = await db.select().from(alumniProfiles).where(eq(alumniProfiles.email, email)).get();
 
-        if (existingProfile) {
-            // If alumni profile exists but has no linked user, they can link/claim it
-            if (!existingProfile.userId) {
-                return NextResponse.json({
-                    message: "An unclaimed profile exists for this email. Please contact Admin for a claim link.",
-                }, { status: 409 });
-            } else {
-                return NextResponse.json({ message: "User already registered. Please login." }, { status: 409 });
-            }
+        if (existingProfile && existingProfile.userId) {
+            // The profile is already claimed (likely by another account if existingUser check didn't catch it)
+            return NextResponse.json({ message: "This alumni profile has already been claimed." }, { status: 409 });
         }
 
         const hashedPassword = await hashPassword(password);
+        const newUserId = crypto.randomUUID();
+        const isAlumni = !!existingProfile;
 
         // Insert into users (schema has: id, email, passwordHash, role, createdAt, fullName)
         const userResult = await db.insert(users).values({
-            id: crypto.randomUUID(),
+            id: newUserId,
             email,
             passwordHash: hashedPassword,
             fullName: fullName,
-            role: 'user', // Default to normal user for new registrations
+            role: isAlumni ? 'alumni' : 'user', // Set to alumni if profile exists
         }).returning({ id: users.id }).get();
 
         if (!userResult) {
@@ -111,10 +107,13 @@ export async function POST(req: Request) {
 
         const userId = userResult.id;
 
-        // Only insert alumni profile if they are intended to be an alumni
-        // In this case, since existingProfile was null, we don't create it anymore
-        // unless you want self-registered users to also be alumni eventually.
-        // Based on user request, we keep them as normal users.
+        // If they are an alumni with a pre-existing profile, link it now.
+        if (isAlumni && existingProfile) {
+            await db.update(alumniProfiles).set({
+                userId,
+                fullName, // Ensure the profile name matches their registered name
+            }).where(eq(alumniProfiles.id, existingProfile.id)).run();
+        }
 
         return NextResponse.json({ message: "User created successfully", userId }, { status: 201 });
 

@@ -53,11 +53,11 @@ export async function POST(req: Request) {
             }
         }
 
-        // 2. Find user by the email provided in the form OR by fullName fallback
-        let userId: string | null = null;
-        let matchedUserEmail: string | null = null;
+        // 2. Default userId to the currently authenticated user
+        let userId: string | null = session?.user?.id || null;
+        let matchedUserEmail: string | null = session?.user?.email || null;
 
-        if (email) {
+        if (!userId && email) {
             const matchingUser = await db.select({ id: users.id, email: users.email })
                 .from(users)
                 .where(eq(users.email, email))
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
             }
         }
 
-        // Fallback: Name-based matching if email match failed
+        // Fallback: Name-based matching if email match failed AND not authenticated
         if (!userId && (body.fullName || profile.fullName)) {
             const nameToMatch = (body.fullName || profile.fullName).trim().toLowerCase();
 
@@ -90,6 +90,10 @@ export async function POST(req: Request) {
                 matchedUserEmail = fuzzyMatch.email;
                 console.log(`Fuzzy match found: "${fuzzyMatch.fullName}" matches "${nameToMatch}"`);
             }
+        }
+
+        if (!userId) {
+            return NextResponse.json({ message: "Could not link profile to a user account. Please login first." }, { status: 400 });
         }
 
         // 3. Update profile with claimed data

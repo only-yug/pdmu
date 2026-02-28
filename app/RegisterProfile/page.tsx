@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import LocationSelect from "@/components/LocationSelect";
+import { validateEmailDomain } from "@/lib/validation";
 
 type Tab = 'basic' | 'professional' | 'contact' | 'rsvp';
 
@@ -187,8 +188,19 @@ export default function RegisterProfilePage() {
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSaving(true);
         setError(null);
+
+        // Simple validation Check before saving
+        if (formData.email) {
+            const { isValid, error: validationError } = validateEmailDomain(formData.email);
+            if (!isValid) {
+                setError(validationError as string);
+                setActiveTab('contact'); // switch to the contact tab so they see the error near the email field
+                return;
+            }
+        }
+
+        setIsSaving(true);
         try {
             const res = await fetch("/api/alumni/claim", {
                 method: "POST",
@@ -206,11 +218,15 @@ export default function RegisterProfilePage() {
             if (res.ok && data.success) {
                 router.push("/profile");
                 router.refresh(); // Refresh to update role etc.
+                setTimeout(() => {
+                    window.location.href = "/profile";
+                }, 500);
             } else {
                 throw new Error(data.message || "Failed to save profile.");
             }
         } catch (err: any) {
             setError(err.message || "Failed to save profile. Please try again.");
+        } finally {
             setIsSaving(false);
         }
     };

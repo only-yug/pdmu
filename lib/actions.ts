@@ -21,6 +21,7 @@ export async function authenticate(
 
         revalidatePath('/', 'layout');
         revalidatePath('/leading');
+        revalidatePath('/profile');
 
         await signIn('credentials', {
             email,
@@ -65,26 +66,32 @@ export async function signup(
         }
 
         const existingProfile = await db.select().from(alumniProfiles).where(eq(alumniProfiles.email, email)).get();
-        if (existingProfile) {
-            if (!existingProfile.userId) {
-                return 'An unclaimed profile exists for this email. Please contact Admin for a claim link.';
-            } else {
-                return 'User already registered. Please login.';
-            }
+        if (existingProfile && existingProfile.userId) {
+            return 'This alumni profile has already been claimed. Please login.';
         }
 
         const hashedPassword = await hashPassword(password);
+        const newUserId = crypto.randomUUID();
+        const isAlumni = !!existingProfile;
 
         const userResult = await db.insert(users).values({
-            id: crypto.randomUUID(),
+            id: newUserId,
             email,
             passwordHash: hashedPassword,
             fullName: fullNameStr,
-            role: 'user',
+            role: isAlumni ? 'alumni' : 'user',
         }).returning({ id: users.id }).get();
 
         if (!userResult) {
             return 'Failed to create user.';
+        }
+
+        // If they are an alumni with a pre-existing profile, link it now.
+        if (isAlumni && existingProfile) {
+            await db.update(alumniProfiles).set({
+                userId: newUserId,
+                fullName: fullNameStr, // Ensure the profile name matches their registered name
+            }).where(eq(alumniProfiles.id, existingProfile.id)).run();
         }
 
         // Auto-login removed as requested. Redirect to login page instead.
@@ -109,7 +116,7 @@ export async function handleSignOut() {
 }
 
 export async function handleGoogleSignIn() {
-    await signIn('google', { redirectTo: '/leading' });
+    await signIn('google', { redirectTo: '/profile' });
 }
 
 export async function searchAlumniByName(query: string) {

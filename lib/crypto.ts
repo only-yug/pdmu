@@ -1,11 +1,18 @@
 // Helper to convert Uint8Array to Base64 (works in Edge and Node)
 function bytesToBase64(bytes: Uint8Array): string {
+    if (typeof Buffer !== 'undefined') {
+        return Buffer.from(bytes).toString('base64');
+    }
     const binString = Array.from(bytes, (byte) => String.fromCharCode(byte)).join("");
     return btoa(binString);
 }
 
 // Helper to convert Base64 to Uint8Array (works in Edge and Node)
 function base64ToBytes(base64: string): Uint8Array {
+    if (typeof Buffer !== 'undefined') {
+        const buf = Buffer.from(base64, 'base64');
+        return Uint8Array.from(buf);
+    }
     const binString = atob(base64);
     return Uint8Array.from(binString, (m) => m.charCodeAt(0));
 }

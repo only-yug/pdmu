@@ -5,9 +5,27 @@ export const runtime = 'edge';
 import { signup } from "@/lib/actions";
 import { useFormState, useFormStatus } from "react-dom";
 import Link from "next/link";
+import { validateEmailDomain } from "@/lib/validation";
+import { useState } from "react";
 
 export default function SignupPage() {
-    const [error, dispatch] = useFormState(signup, undefined);
+    const [serverError, dispatch] = useFormState(signup, undefined);
+    const [clientError, setClientError] = useState<string | undefined>(undefined);
+
+    const handleSubmit = (formData: FormData) => {
+        setClientError(undefined);
+        const email = formData.get("email") as string;
+
+        const { isValid, error: validationError } = validateEmailDomain(email);
+        if (!isValid) {
+            setClientError(validationError);
+            return;
+        }
+
+        dispatch(formData);
+    };
+
+    const error = clientError || serverError;
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex items-center justify-center p-4">
@@ -27,7 +45,7 @@ export default function SignupPage() {
                     Join the PDUMC 2001 Batch Reunion
                 </p>
 
-                <form action={dispatch} className="space-y-4">
+                <form action={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1 ml-1" htmlFor="fullName">
                             Full Name

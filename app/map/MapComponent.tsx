@@ -46,8 +46,7 @@ export default function MapComponent({ alumni }: { alumni: any[] }) {
         .map(person => {
             // Add slight jitter to avoid exact overlap for people in the same building/city
             // Use their ID as a seed for consistent jitter
-            const idStr = String(person.id || 0);
-            const seed = idStr.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+            const seed = String(person.id).split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
             const jitterLat = ((seed % 100) / 100 - 0.5) * 0.05;
             const jitterLng = (((seed * 1.5) % 100) / 100 - 0.5) * 0.05;
 

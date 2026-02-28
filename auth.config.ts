@@ -40,7 +40,7 @@ export const authConfig = {
         return false; // Redirect unauthenticated users to login page
       }
 
-      if (isLoggedIn && (nextUrl.pathname === '/login' || nextUrl.pathname === '/register' || nextUrl.pathname === '/registerProfile')) {
+      if (isLoggedIn && (nextUrl.pathname === '/login' || nextUrl.pathname === '/register' || nextUrl.pathname === '/signup')) {
         return Response.redirect(new URL('/leading', nextUrl));
       }
 
