@@ -116,7 +116,7 @@ export async function handleSignOut() {
 }
 
 export async function handleGoogleSignIn() {
-    await signIn('google', { redirectTo: '/profile' });
+    await signIn('google', { redirectTo: '/leading' });
 }
 
 export async function searchAlumniByName(query: string) {
