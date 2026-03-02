@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import LocationSelect from "@/components/LocationSelect";
+
 import { validateEmailDomain } from "@/lib/validation";
 
 type Tab = 'basic' | 'professional' | 'contact' | 'rsvp';
@@ -80,9 +81,6 @@ export default function RegisterProfilePage() {
         }
     }, [status, router]);
 
-
-
-    // Fetch Hotels
     useEffect(() => {
         async function fetchHotels() {
             try {
@@ -96,7 +94,6 @@ export default function RegisterProfilePage() {
         fetchHotels();
     }, []);
 
-    // Simple debounce for search
     useEffect(() => {
         const timer = setTimeout(async () => {
             if (query.length >= 1 && !selectedAlumni) {
@@ -201,6 +198,7 @@ export default function RegisterProfilePage() {
         }
 
         setIsSaving(true);
+
         try {
             const res = await fetch("/api/alumni/claim", {
                 method: "POST",
@@ -217,16 +215,20 @@ export default function RegisterProfilePage() {
 
             if (res.ok && data.success) {
                 router.push("/profile");
-                router.refresh(); // Refresh to update role etc.
+                router.refresh();
+
                 setTimeout(() => {
                     window.location.href = "/profile";
                 }, 500);
+
             } else {
                 throw new Error(data.message || "Failed to save profile.");
             }
         } catch (err: any) {
             setError(err.message || "Failed to save profile. Please try again.");
+
         } finally {
+
             setIsSaving(false);
         }
     };
@@ -287,7 +289,7 @@ export default function RegisterProfilePage() {
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold text-gray-900 uppercase tracking-widest mb-2">Full Name *</label>
-                                            <input name="fullName" value={formData.fullName} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-blue-500 transition-all text-gray-900" placeholder="e.g. Bhavik Parmar" required />
+                                            <input name="fullName" value={formData.fullName} readOnly className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 outline-none text-gray-500 cursor-not-allowed" placeholder="e.g. Bhavik Parmar" required />
                                         </div>
                                     </div>
 
@@ -418,11 +420,11 @@ export default function RegisterProfilePage() {
                                             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div>
                                                     <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Adults Attending <span className="text-[10px] lowercase text-gray-400">(Including yourself)</span></label>
-                                                    <input type="number" name="rsvpAdults" value={formData.rsvpAdults} onChange={handleInputChange} min="1" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white" />
+                                                    <input type="number" name="rsvpAdults" value={formData.rsvpAdults} onChange={handleInputChange} min="1" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-black" />
                                                 </div>
                                                 <div>
                                                     <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Kids Attending <span className="text-[10px] lowercase text-gray-400">(Under 12)</span></label>
-                                                    <input type="number" name="rsvpKids" value={formData.rsvpKids} onChange={handleInputChange} min="0" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white" />
+                                                    <input type="number" name="rsvpKids" value={formData.rsvpKids} onChange={handleInputChange} min="0" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-black" />
                                                 </div>
                                             </div>
                                         )}

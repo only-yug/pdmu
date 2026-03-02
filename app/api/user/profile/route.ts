@@ -18,7 +18,7 @@ export async function GET() {
 
         let profile = await database.select()
             .from(alumniProfiles)
-            .where(eq(alumniProfiles.userId, session.user.id))
+            .where(eq(alumniProfiles.email, session.user.email))
             .get();
 
         if (!profile) {
@@ -76,11 +76,8 @@ export async function PUT(req: Request) {
             Object.entries(result.data).filter(([__, v]) => v !== undefined)
         );
 
-        // --- GEOCODING LOGIC ---
-        // If city or country is updated, we fetch coordinates to store them permanently
         if (result.data.city || result.data.country) {
             try {
-                // Construct search query
                 const city = result.data.city || "";
                 const country = result.data.country || "";
                 const q = [city, country].filter(Boolean).join(", ");
@@ -94,7 +91,7 @@ export async function PUT(req: Request) {
                     if (geoData && geoData.length > 0) {
                         updateData.latitude = parseFloat(geoData[0].lat);
                         updateData.longitude = parseFloat(geoData[0].lon);
-                        console.log(`✅ Geocoded ${q} to ${updateData.latitude}, ${updateData.longitude}`);
+                        console.log(`Geocoded ${q} to ${updateData.latitude}, ${updateData.longitude}`);
                     }
                 }
             } catch (err) {

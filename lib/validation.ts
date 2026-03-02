@@ -12,6 +12,7 @@ export const ALLOWED_EMAIL_DOMAINS = [
     'protonmail.com',
     'proton.me',
     'zoho.com',
+    'delhi.gov.in'
 ];
 
 export function validateEmailDomain(email: string): { isValid: boolean; error?: string } {

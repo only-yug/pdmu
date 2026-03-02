@@ -5,7 +5,6 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-// Fix Leaflet's default icon path issues in Next.js
 const iconUrl = "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png";
 const iconRetinaUrl = "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png";
 const shadowUrl = "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png";
@@ -22,7 +21,6 @@ const DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// Component to fit bounds
 function MapBounds({ markers }: { markers: any[] }) {
     const map = useMap();
 
@@ -42,10 +40,8 @@ function MapBounds({ markers }: { markers: any[] }) {
 export default function MapComponent({ alumni }: { alumni: any[] }) {
     // Convert alumni to markers based ONLY on database coordinates
     const markers = alumni
-        .filter(person => person.latitude && person.longitude) // Only show users with saved coords
+        .filter(person => person.latitude && person.longitude)
         .map(person => {
-            // Add slight jitter to avoid exact overlap for people in the same building/city
-            // Use their ID as a seed for consistent jitter
             const seed = String(person.id).split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
             const jitterLat = ((seed % 100) / 100 - 0.5) * 0.05;
             const jitterLng = (((seed * 1.5) % 100) / 100 - 0.5) * 0.05;

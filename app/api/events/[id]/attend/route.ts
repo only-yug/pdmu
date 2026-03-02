@@ -51,7 +51,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
         if (profiles.length === 0) {
             if (session.user.role === "admin") {
-                // Auto-provision an alumni profile for the admin so they can test/use RSVPs
                 await db.insert(alumniProfiles).values({
                     email: session.user.email,
                     fullName: session.user.name || "Admin",
@@ -76,7 +75,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         ).limit(1);
 
         if (existing.length > 0) {
-            // Toggle off
             await db.delete(eventAttendees).where(
                 and(
                     eq(eventAttendees.eventId, eventId),
@@ -85,7 +83,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             ).run();
             return NextResponse.json({ attending: false, message: "Attendance removed" });
         } else {
-            // Toggle on
             await db.insert(eventAttendees).values({
                 eventId,
                 alumniId,

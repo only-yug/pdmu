@@ -127,3 +127,14 @@ export const eventAttendees = sqliteTable("event_attendees", {
     eventIdIdx: index("idx_event_attendees_event_id").on(table.eventId),
     alumniIdIdx: index("idx_event_attendees_alumni_id").on(table.alumniId),
 }));
+
+// ─── PASSWORD RESET TOKENS ───────────────────────────────────────────────────
+export const passwordResetTokens = sqliteTable("password_reset_tokens", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    token: text("token").notNull(),           // 6-digit OTP
+    expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+}, (table) => ({
+    userIdIdx: index("idx_password_reset_tokens_user_id").on(table.userId),
+}));

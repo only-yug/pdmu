@@ -244,7 +244,7 @@ export default async function AlumniProfilePage({ params }: { params: { id: stri
                                     <div className="space-y-3 pt-4 border-t border-gray-100 dark:border-gray-800">
                                         <h3 className="text-xl font-bold text-gray-900 dark:text-white">Favorite College Memories</h3>
                                         <div className="text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
-                                            "{profile.favoriteMemories}"
+                                            {profile.favoriteMemories}
                                         </div>
                                     </div>
                                 )}

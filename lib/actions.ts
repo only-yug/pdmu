@@ -14,10 +14,11 @@ export async function authenticate(
     formData: FormData,
 ) {
     try {
-        const email = formData.get('email');
+        const rawEmail = formData.get('email');
         const password = formData.get('password');
 
-        if (!email || !password) return 'Email and password are required.';
+        if (!rawEmail || !password) return 'Email and password are required.';
+        const email = (rawEmail as string).toLowerCase();
 
         revalidatePath('/', 'layout');
         revalidatePath('/leading');
@@ -49,13 +50,15 @@ export async function signup(
     formData: FormData,
 ) {
     try {
-        const email = formData.get('email') as string;
+        const rawEmail = formData.get('email') as string;
         const password = formData.get('password') as string;
         const fullName = formData.get('fullName') as string;
 
-        if (!email || !password) {
+        if (!rawEmail || !password) {
             return 'Email and password are required.';
         }
+        
+        const email = rawEmail.toLowerCase();
 
         const fullNameStr = fullName || email.split('@')[0];
         const db = getDrizzleDb();

@@ -35,7 +35,6 @@ export async function POST(req: Request) {
 
         const db = getDrizzleDb();
 
-        // 1. Check if profile exists
         const profile = await db.select()
             .from(alumniProfiles)
             .where(eq(alumniProfiles.id, Number(alumniId)))
@@ -45,19 +44,17 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: "Profile not found" }, { status: 404 });
         }
 
-        // 2. Allow claiming if replacing an unclaimed profile OR updating own profile
         if (profile.userId) {
-            // A user already claimed this profile. Check if it's the CURRENT user.
             if (!session || !session.user || session.user.id !== profile.userId) {
                 return NextResponse.json({ message: "Profile is already claimed by someone else" }, { status: 409 });
             }
         }
 
-        // 2. Default userId to the currently authenticated user
         let userId: string | null = session?.user?.id || null;
         let matchedUserEmail: string | null = session?.user?.email || null;
 
         if (!userId && email) {
+
             const matchingUser = await db.select({ id: users.id, email: users.email })
                 .from(users)
                 .where(eq(users.email, email))
@@ -69,11 +66,9 @@ export async function POST(req: Request) {
             }
         }
 
-        // Fallback: Name-based matching if email match failed AND not authenticated
         if (!userId && (body.fullName || profile.fullName)) {
             const nameToMatch = (body.fullName || profile.fullName).trim().toLowerCase();
 
-            // Get all users to perform fuzzy matching (suitable for small/medium DB)
             const allUsers = await db.select({ id: users.id, email: users.email, fullName: users.fullName })
                 .from(users)
                 .all();
@@ -81,7 +76,6 @@ export async function POST(req: Request) {
             const fuzzyMatch = allUsers.find((u: any) => {
                 if (!u.fullName) return false;
                 const uName = u.fullName.toLowerCase();
-                // Match if one name contains the other (e.g., "Bhavik" matches "Bhavik Parmar")
                 return uName.includes(nameToMatch) || nameToMatch.includes(uName);
             });
 
@@ -96,7 +90,6 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: "Could not link profile to a user account. Please login first." }, { status: 400 });
         }
 
-        // 3. Update profile with claimed data
         await db.update(alumniProfiles)
             .set({
                 userId: userId,
@@ -128,7 +121,6 @@ export async function POST(req: Request) {
             .where(eq(alumniProfiles.id, Number(alumniId)))
             .run();
 
-        // 4. Update the user role to 'alumni' for the matched user
         if (matchedUserEmail) {
             await db.update(users)
                 .set({ role: 'alumni' })

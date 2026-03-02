@@ -1,5 +1,7 @@
 # Database Setup
 
+
+
 This directory contains the database schema and migration files for the PDUMC Alumni Platform.
 
 ## Local Development
@@ -51,6 +53,7 @@ The database consists of the following tables:
 - **announcements**: Platform announcements
 - **activity_logs**: Admin monitoring logs
 
+
 ## Adding New Migrations
 
 1. Create a new file in `db/migrations/` with format `002_description.sql`
@@ -59,3 +62,4 @@ The database consists of the following tables:
    ```bash
    wrangler d1 execute pdumc-alumni-db --file=./db/migrations/002_description.sql
    ```
+   

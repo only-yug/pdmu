@@ -40,7 +40,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           .safeParse(credentials);
 
         if (parsedCredentials.success) {
-          const { email, password } = parsedCredentials.data;
+
+          const { email: rawEmail, password } = parsedCredentials.data;
+          const email = rawEmail.toLowerCase();
           console.log('[Auth Debug] Authorize called for email:', email);
 
           const user = await getUserByEmail(email);
@@ -52,13 +54,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           console.log('[Auth Debug] User found:', user.email, 'Role:', user.role);
 
-          // Verify password using Web Crypto
           const passwordsMatch = await verifyPassword(password, user.passwordHash || "");
-
           console.log('[Auth Debug] Password match result:', passwordsMatch);
 
           if (passwordsMatch) {
-            // Fetch alumni profile to see if this user is a batchmate
             const db = getDrizzleDb();
             const profile = await db.select()
               .from(alumniProfiles)
@@ -86,43 +85,39 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async signIn({ user, account }) {
       if (account?.provider === 'google' && user.email) {
         try {
+          const email = user.email.toLowerCase();
+
           const database = getDrizzleDb();
 
-          // 1. Whitelist Check: does this email exist in the prepopulated 50 profiles?
           const profile = await database.select()
             .from(alumniProfiles)
-            .where(eq(alumniProfiles.email, user.email))
+            .where(eq(alumniProfiles.email, email))
             .get();
 
-          // 2. Check if general User record already exists
           const existingUser = await database.select()
             .from(users)
-            .where(eq(users.email, user.email))
+            .where(eq(users.email, email))
             .get();
 
           let currentUserId = existingUser?.id;
 
           if (!existingUser) {
-            // Create user account
             currentUserId = crypto.randomUUID();
             await database.insert(users).values({
               id: currentUserId,
-              email: user.email,
-              passwordHash: '', // Google users don't have passwords
+              email: email,
+              passwordHash: '',
               fullName: user.name,
               role: profile ? 'alumni' : 'user',
             }).run();
           }
 
-          // 3. Link the session variables
           user.id = currentUserId!;
           (user as any).role = existingUser?.role || (profile ? 'alumni' : 'user');
 
-          // 4. If they are a whitelisted batchmate, link their profile
           if (profile) {
             (user as any).alumniProfileId = profile.id;
 
-            // If the profile isn't associated with the User DB yet, link it
             if (!profile.userId) {
               await database.update(alumniProfiles)
                 .set({ userId: currentUserId })
@@ -133,7 +128,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         } catch (error) {
           console.error('Google sign-in user creation error:', error);
-          return false; // Block sign-in on error
+          return false;
         }
       }
       return true;
