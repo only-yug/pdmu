@@ -1,4 +1,4 @@
-name = "pdumc2001-com"
+name = "pdumc-alumni-platform"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".vercel/output/static"
@@ -6,8 +6,8 @@ pages_build_output_dir = ".vercel/output/static"
 # D1 Database binding
 [[d1_databases]]
 binding = "DB"
-database_name = "reunion2001"
-database_id = "136c7250-d158-4c8c-a9b0-06444acbbe36"
+database_name = ""
+database_id = "2588d2b0-eaf2-4b58-9974-2369aaf7efe5"
 migrations_dir = "db/migrations"
 
 
