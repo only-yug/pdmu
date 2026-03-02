@@ -6,7 +6,7 @@ pages_build_output_dir = ".vercel/output/static"
 # D1 Database binding
 [[d1_databases]]
 binding = "DB"
-database_name = ""
+database_name = "pdumc-alumni-db"
 database_id = "2588d2b0-eaf2-4b58-9974-2369aaf7efe5"
 migrations_dir = "db/migrations"
 
